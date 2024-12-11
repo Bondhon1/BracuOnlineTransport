@@ -1,0 +1,13 @@
+{% extends "app.html" %}
+{% block content %}
+<div class="container">
+    <h2>Submit Feedback</h2>
+    <form method="POST" action="/submit_feedback">
+        <div class="form-group">
+            <label for="message">Your Feedback</label>
+            <textarea class="form-control" id="message" name="message" required></textarea>
+        </div>
+        <button type="submit" class="btn btn-primary">Submit</button>
+    </form>
+</div>
+{% endblock %}

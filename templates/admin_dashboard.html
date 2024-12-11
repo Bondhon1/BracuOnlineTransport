@@ -1,0 +1,23 @@
+{% extends 'app.html' %}
+
+{% block content %}
+<div class="container mt-5">
+    <h2 class="text-center">Admin Dashboard</h2>
+    <div class="row mt-4">
+        <div class="col-md-6">
+            <h4>Admin Info</h4>
+            {% if admin %}
+                <p><strong>Username:</strong> {{ admin[0] }}</p> <!-- Display username -->
+                <p><strong>Email:</strong> {{ admin[1] }}</p> <!-- Display email -->
+            {% else %}
+                <p>No admin data available.</p>
+            {% endif %}
+        </div>
+        <div class="col-md-6 text-right">
+            <a href="/add_admin" class="btn btn-success mb-3">Add Admin</a>
+            <a href="/view_users" class="btn btn-primary mb-3">View Users</a>
+            <a href="/admin_logout" class="btn btn-danger mb-3">Logout</a>  <!-- Logout button -->
+        </div>
+    </div>
+</div>
+{% endblock %}

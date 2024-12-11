@@ -1,0 +1,74 @@
+{% extends 'app.html' %}
+{% block content %}
+
+<!-- Container to hold the dashboard content, using Bootstrap for styling -->
+<div class="container mt-5">
+  <!-- Header for the dashboard page -->
+  <h2 class="mb-4">Welcome to the Dashboard</h2>
+  <img src="{{ url_for('static', filename=user.profile_image) }}" alt="Profile Image" class="img-thumbnail">
+  <!-- Check if the 'user' variable is passed to the template -->
+  {% if user %}
+    <!-- Display user information in a table format -->
+    <div class="card shadow">
+      <div class="card-header bg-primary text-white">
+        User Information
+      </div>
+      <div class="card-body">
+        <table class="table table-bordered table-hover">
+          <thead class="thead-dark">
+            <tr>
+              <th>Attribute</th>
+              <th>Details</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>Username</td>
+              <td>{{ user[1] }}</td>
+            </tr>
+            <tr>
+              <td>Email</td>
+              <td>{{ user[2] }}</td>
+            </tr>
+            <tr>
+              <td>Full Name</td>
+              <td>{{ user[4] if user[4] else 'N/A' }}</td>
+            </tr>
+            <tr>
+              <td>Student ID</td>
+              <td>{{ user[5] if user[5] else 'N/A' }}</td>
+            </tr>
+            <tr>
+              <td>Department</td>
+              <td>{{ user[6] if user[6] else 'N/A' }}</td>
+            </tr>
+            <tr>
+              <td>Address</td>
+              <td>{{ user[7] if user[7] else 'N/A' }}</td>
+            </tr>
+            <tr>
+              <td>Mobile Number (+880)</td>
+              <td>{{ user[8] if user[8] else 'N/A' }}</td>
+            </tr>
+            <tr>
+              <td>Blood Group</td>
+              <td>{{ user[9] if user[9] else 'N/A' }}</td>
+            </tr>
+            <tr>
+              <td>Regestration Date</td>
+              <td>{{ user[10] if user[10] else 'N/A' }}</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+    
+    <!-- Links for updating profile and logout -->
+    <div class="mt-4">
+      <a href="{{ url_for('update_profile') }}" class="btn btn-success mr-2">Update Profile</a>
+      <a href="/logout" class="btn btn-danger">Logout</a>
+    </div>
+  {% endif %}
+</div>
+
+{% endblock %}
