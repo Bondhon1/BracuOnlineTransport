@@ -5,7 +5,7 @@
 <div class="container mt-5">
   <!-- Header for the dashboard page -->
   <h2 class="mb-4">Welcome to the Dashboard</h2>
-  <img src="{{ url_for('static', filename=user.profile_image) }}" alt="Profile Image" class="img-thumbnail">
+  <img src="{{ url_for('static', filename='uploads/' + user[11]) }}" alt="Profile Image" class="img-thumbnail" width="150">
   <!-- Check if the 'user' variable is passed to the template -->
   {% if user %}
     <!-- Display user information in a table format -->

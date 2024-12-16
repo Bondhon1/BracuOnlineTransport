@@ -10,6 +10,7 @@ import os
 from flask_sqlalchemy import SQLAlchemy
 from werkzeug.utils import secure_filename
 from flask_wtf.file import FileField, FileAllowed, FileRequired
+from wtforms import TimeField
 
 
 app = Flask(__name__)
@@ -79,6 +80,15 @@ class UpdateProfileForm(FlaskForm):
     def validate_student_id(form, field):
         if len(str(field.data)) != 8:
             raise ValidationError('Student ID must be exactly 8 digits long.')
+        
+class AddScheduleForm(FlaskForm):
+    route_name = StringField("Route Name", validators=[DataRequired()])
+    departure_time = TimeField("Departure Time", format='%H:%M', validators=[DataRequired()])
+    arrival_time = TimeField("Arrival Time", format='%H:%M', validators=[DataRequired()])
+    bus_number = StringField("Bus Number", validators=[DataRequired()])
+    driver_name = StringField("Driver Name")
+    capacity = IntegerField("Capacity")
+    submit = SubmitField("Add Schedule")
 
 
 @app.route('/')
@@ -299,6 +309,61 @@ def update_profile():
 @app.route('/book_ticket')
 def book_ticket():
     return render_template('book_ticket.html')
+
+@app.route('/add_schedule', methods=['GET', 'POST'])
+def add_schedule():
+    if 'admin_id' not in session:
+        return redirect(url_for('adminlogin'))
+
+    form = AddScheduleForm()
+
+    if form.validate_on_submit():
+        route_name = form.route_name.data
+        departure_time = form.departure_time.data
+        arrival_time = form.arrival_time.data
+        bus_number = form.bus_number.data
+        driver_name = form.driver_name.data
+        capacity = form.capacity.data
+
+        cursor = mysql.connection.cursor()
+        cursor.execute("""
+            INSERT INTO bus_schedules (route_name, departure_time, arrival_time, bus_number, driver_name, capacity)
+            VALUES (%s, %s, %s, %s, %s, %s)
+        """, (route_name, departure_time, arrival_time, bus_number, driver_name, capacity))
+        mysql.connection.commit()
+        cursor.close()
+
+        flash("Bus schedule added successfully!", "success")
+        return redirect(url_for('view_schedules'))
+
+    return render_template('add_schedule.html', form=form)
+
+# Route to View Schedules
+@app.route('/view_schedules')
+def view_schedules():
+    if 'admin_id' not in session:
+        return redirect(url_for('adminlogin'))
+
+    cursor = mysql.connection.cursor()
+    cursor.execute("SELECT * FROM bus_schedules")
+    schedules = cursor.fetchall()
+    cursor.close()
+
+    return render_template('view_schedules.html', schedules=schedules)
+
+# Route to Delete a Schedule
+@app.route('/delete_schedule/<int:schedule_id>', methods=['POST'])
+def delete_schedule(schedule_id):
+    if 'admin_id' not in session:
+        return redirect(url_for('adminlogin'))
+
+    cursor = mysql.connection.cursor()
+    cursor.execute("DELETE FROM bus_schedules WHERE id=%s", (schedule_id,))
+    mysql.connection.commit()
+    cursor.close()
+
+    flash("Schedule deleted successfully.", "success")
+    return redirect(url_for('view_schedules'))
 
 @app.route('/logout')
 def logout():
