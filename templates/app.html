@@ -16,30 +16,49 @@
 </head>
 <body>
 
-<!-- Navigation bar -->
+<!-- Navbar in app.html -->
 <nav class="navbar navbar-expand-lg navbar-light bg-light">
   <a class="navbar-brand" href="/">
     <img src="{{ url_for('static', filename='images/logo.png') }}" alt="Logo" width="30" height="30" class="d-inline-block align-top">
     University Transport System
   </a>
+
   <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarNav" aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
     <span class="navbar-toggler-icon"></span>
   </button>
+
   <div class="collapse navbar-collapse" id="navbarNav">
     <ul class="navbar-nav ml-auto">
+      <li class="nav-item"><a class="nav-link" href="/index">Home</a></li>
+  
+      {% if 'user_id' in session %}
       <li class="nav-item">
-        <a class="nav-link" href="/login">Login</a>
+        <a class="nav-link" href="{{ url_for('dashboard') }}">User Dashboard</a>
       </li>
+      {% elif 'staff_id' in session %}
       <li class="nav-item">
-        <a class="nav-link" href="/register">Register</a>
+        <a class="nav-link" href="{{ url_for('staff_dashboard') }}">Staff Dashboard</a>
       </li>
+      {% elif 'admin_id' in session %}
       <li class="nav-item">
-        <a class="nav-link" href="/admin_login">Admin</a>
+        <a class="nav-link" href="{{ url_for('Admindashboard') }}">Admin Dashboard</a>
       </li>
+      {% endif %}
+  
+      {% if 'user_id' in session or 'staff_id' in session or 'admin_id' in session %}
+      <li class="nav-item">
+        <a class="nav-link" href="{{ url_for('logout') }}">Logout</a>
+      </li>
+      {% else %}
+      <li class="nav-item"><a class="nav-link" href="/login">Login</a></li>
+      <li class="nav-item"><a class="nav-link" href="/register">Register</a></li>
+      <li class="nav-item"><a class="nav-link" href="/admin_login">Admin</a></li>
+      <li class="nav-item"><a class="nav-link" href="/staff_login">Faculty/Staff</a></li>
+      {% endif %}
     </ul>
   </div>
+  
 </nav>
-
 <!-- Main content -->
 {% block content %} 
 {% endblock %}

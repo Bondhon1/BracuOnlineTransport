@@ -1,0 +1,45 @@
+{% extends 'app.html' %}
+{% block content %}
+
+<div class="container mt-5">
+  <h2 class="mb-4">Welcome to the Staff Dashboard</h2>
+
+  {% if staff %}
+  <img src="{{ url_for('static', filename='uploads/' + staff[11]) }}" alt="Profile Image" class="img-thumbnail" width="150">
+
+  <div class="card shadow">
+    <div class="card-header bg-primary text-white">
+      Faculty/Staff Information
+    </div>
+    <div class="card-body">
+      <table class="table table-bordered table-hover">
+        <thead class="thead-dark">
+          <tr>
+            <th>Attribute</th>
+            <th>Details</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr><td>Initial</td><td>{{ staff[1] }}</td></tr>
+          <tr><td>Email</td><td>{{ staff[2] }}</td></tr>
+          <tr><td>Full Name</td><td>{{ staff[4] if staff[4] else 'N/A' }}</td></tr>
+          <tr><td>PIN</td><td>{{ staff[5] if staff[5] else 'N/A' }}</td></tr>
+          <tr><td>Department</td><td>{{ staff[6] if staff[6] else 'N/A' }}</td></tr>
+          <tr><td>Address</td><td>{{ staff[7] if staff[7] else 'N/A' }}</td></tr>
+          <tr><td>Mobile Number (+880)</td><td>{{ staff[8] if staff[8] else 'N/A' }}</td></tr>
+          <tr><td>Blood Group</td><td>{{ staff[9] if staff[9] else 'N/A' }}</td></tr>
+          <tr><td>Registration Date</td><td>{{ staff[10] if staff[10] else 'N/A' }}</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <div class="mt-4">
+    <a href="{{ url_for('staff_update_profile') }}" class="btn btn-success mr-2">Update Profile</a>
+    <a href="{{ url_for('request_vehicle') }}" class="btn btn-success mr-2">Request a vehicle</a>
+    <a href="/logout" class="btn btn-danger">Logout</a>
+  </div>
+  {% endif %}
+</div>
+
+{% endblock %}

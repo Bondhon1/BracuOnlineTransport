@@ -1,0 +1,39 @@
+{% extends 'app.html' %}
+{% block content %}
+<div class="container mt-5">
+    <h2>Vehicle Requests</h2>
+    <table class="table table-bordered">
+        <thead class="thead-dark">
+            <tr>
+                <th>ID</th>
+                <th>Staff</th>
+                <th>Journey Date</th>
+                <th>From</th>
+                <th>To</th>
+                <th>Capacity</th>
+                <th>Status</th>
+                <th>Actions</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for request in requests %}
+            <tr>
+                <td>{{ request[0] }}</td>
+                <td>{{ request[1] }}</td>
+                <td>{{ request[2] }}</td>
+                <td>{{ request[3] }}</td>
+                <td>{{ request[4] }}</td>
+                <td>{{ request[5] }}</td>
+                <td>{{ request[6] }}</td>
+                <td>
+                    <form method="POST" action="{{ url_for('respond_request', request_id=request[0]) }}">
+                        <textarea name="reply" class="form-control" placeholder="Enter reply here"></textarea>
+                        <button type="submit" class="btn btn-success mt-2">Respond</button>
+                    </form>
+                </td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+{% endblock %}

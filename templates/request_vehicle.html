@@ -1,0 +1,22 @@
+{% extends 'app.html' %}
+{% block content %}
+<div class="container">
+    <h2>Request Vehicle</h2>
+    <form method="POST">
+        {{ form.hidden_tag() }}
+        <div class="form-group">
+            {{ form.journey_date.label }} {{ form.journey_date(class="form-control") }}
+        </div>
+        <div class="form-group">
+            {{ form.pickup_location.label }} {{ form.pickup_location(class="form-control") }}
+        </div>
+        <div class="form-group">
+            {{ form.destination.label }} {{ form.destination(class="form-control") }}
+        </div>
+        <div class="form-group">
+            {{ form.capacity.label }} {{ form.capacity(class="form-control") }}
+        </div>
+        {{ form.submit(class="btn btn-primary") }}
+    </form>
+</div>
+{% endblock %}

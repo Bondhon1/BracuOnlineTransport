@@ -1,13 +1,75 @@
-{% extends "app.html" %}
+{% extends 'app.html' %}
+
 {% block content %}
-<div class="container">
-    <h2>Submit Feedback</h2>
-    <form method="POST" action="/submit_feedback">
-        <div class="form-group">
-            <label for="message">Your Feedback</label>
-            <textarea class="form-control" id="message" name="message" required></textarea>
-        </div>
-        <button type="submit" class="btn btn-primary">Submit</button>
-    </form>
+<div class="container mt-5">
+  <h2 class="text-center mb-4">Submit Feedback</h2>
+
+  <!-- Flash Messages -->
+  {% with messages = get_flashed_messages() %}
+  {% if messages %}
+  <div class="alert alert-success">
+    <ul>
+      {% for message in messages %}
+      <li>{{ message }}</li>
+      {% endfor %}
+    </ul>
+  </div>
+  {% endif %}
+  {% endwith %}
+
+  <!-- Feedback Form -->
+  <form method="POST" action="{{ url_for('feedback') }}">
+    {{ form.hidden_tag() }}
+
+    <div class="form-group">
+      {{ form.bus_number.label(for="bus_number") }}
+      {{ form.bus_number(id="bus_number", class="form-control") }}
+      {% if form.bus_number.errors %}
+      <ul class="text-danger">
+        {% for error in form.bus_number.errors %}
+        <li>{{ error }}</li>
+        {% endfor %}
+      </ul>
+      {% endif %}
+    </div>
+
+    <div class="form-group">
+      {{ form.feedback.label(for="feedback") }}
+      {{ form.feedback(id="feedback", class="form-control") }}
+      {% if form.feedback.errors %}
+      <ul class="text-danger">
+        {% for error in form.feedback.errors %}
+        <li>{{ error }}</li>
+        {% endfor %}
+      </ul>
+      {% endif %}
+    </div>
+
+    <div class="form-group">
+      {{ form.rating.label(for="rating") }}
+      {{ form.rating(id="rating", class="form-control") }}
+      {% if form.rating.errors %}
+      <ul class="text-danger">
+        {% for error in form.rating.errors %}
+        <li>{{ error }}</li>
+        {% endfor %}
+      </ul>
+      {% endif %}
+    </div>
+
+    <div class="form-group">
+      {{ form.journey_date.label(for="journey_date") }}
+      {{ form.journey_date(id="journey_date", class="form-control", type="date") }}
+      {% if form.journey_date.errors %}
+      <ul class="text-danger">
+        {% for error in form.journey_date.errors %}
+        <li>{{ error }}</li>
+        {% endfor %}
+      </ul>
+      {% endif %}
+    </div>
+
+    <button type="submit" class="btn btn-success">Submit Feedback</button>
+  </form>
 </div>
 {% endblock %}
