@@ -102,7 +102,25 @@ class UpdateProfileForm(FlaskForm):
     def validate_student_id(form, field):
         if len(str(field.data)) != 8:
             raise ValidationError('Student ID must be exactly 8 digits long.')
+
+
+class StaffUpdateProfileForm(FlaskForm):
+    full_name = StringField("Full Name", validators=[DataRequired(), Length(max=50)])
+    PIN = IntegerField("PIN", validators=[DataRequired()])
+    department = SelectField("Department", choices=[('CSE', 'CSE'), ('EEE', 'EEE'), ('ANT', 'ANT'), ('BBA', 'BBA'), ('PHY', 'PHY')], validators=[DataRequired()])
+    address = StringField("Address", validators=[DataRequired(), Length(max=100)])
+    mobile_number = IntegerField("Mobile Number", validators=[DataRequired()])
+    blood_group = StringField("Blood Group", validators=[DataRequired(), Length(max=3)])
+    profile_image = FileField("Profile Image", validators=[
+        FileAllowed(['jpg', 'jpeg', 'png', 'gif'], 'Images only!')
+    ])
+    submit = SubmitField("Update Profile")
+
+    def validate_PIN(form, field):
+        if len(str(field.data)) != 5:
+            raise ValidationError('PIN must be exactly 8 digits long.')
         
+
 class AddScheduleForm(FlaskForm):
     route_name = StringField("Route Name", validators=[DataRequired()])
     departure_time = TimeField("Departure Time", format='%H:%M', validators=[DataRequired()])
@@ -353,8 +371,7 @@ def add_admin():
 
     return render_template('add_admin.html', form=form)
 
-    return render_template('add_admin.html', form=form)
-
+   
 
 # Define the route to view users
 @app.route('/view_users')
@@ -436,7 +453,59 @@ def update_profile():
             form.blood_group.data = user[9]
 
     return render_template('update_profile.html', form=form)
-# Define the route for logging out the user
+
+
+@app.route('/staff_update_profile', methods=['GET', 'POST'])
+def staff_update_profile():
+    if 'staff_id' not in session:
+        return redirect(url_for('staff_login'))
+
+    form = StaffUpdateProfileForm()
+    staff_id = session['staff_id']
+
+    if form.validate_on_submit():
+        full_name = form.full_name.data
+        PIN = form.PIN.data
+        department = form.department.data
+        address = form.address.data
+        mobile_number = form.mobile_number.data
+        blood_group = form.blood_group.data
+
+        # Handle profile image upload
+        if form.profile_image.data:
+            image_file = form.profile_image.data
+            filename = secure_filename(image_file.filename)
+            image_path = os.path.join(app.config['UPLOAD_FOLDER'], filename)
+            image_file.save(image_path)
+
+            # Update the database with the profile image path
+            cursor = mysql.connection.cursor()
+            cursor.execute("""
+                UPDATE staffs 
+                SET full_name = %s, pin = %s, department = %s, address = %s, mobile_number = %s, blood_group = %s, profile_image = %s 
+                WHERE id = %s
+            """, (full_name, PIN, department, address, mobile_number, blood_group, filename, staff_id))
+            mysql.connection.commit()
+            cursor.close()
+
+        flash('Profile updated successfully!', 'success')
+        return redirect(url_for('staff_dashboard'))
+
+    else:
+        cursor = mysql.connection.cursor()
+        cursor.execute("SELECT * FROM staffs WHERE id = %s", (staff_id,))
+        staff = cursor.fetchone()
+        cursor.close()
+
+        if staff:
+            form.full_name.data = staff[4]
+            form.PIN.data = staff[5]
+            form.department.data = staff[6]
+            form.address.data = staff[7]
+            form.mobile_number.data = staff[8]
+            form.blood_group.data = staff[9]
+
+    return render_template('staff_update_profile.html', form=form)
 
 @app.route('/request_vehicle', methods=['GET', 'POST'])
 def request_vehicle():
@@ -582,9 +651,7 @@ def calculate_average_rating(feedbacks):
 def book_ticket():
     return render_template('book_ticket.html')
 
-@app.route('/staff_update_profile')
-def staff_update_profile():
-    return render_template('staff_update_profile.html')
+
 
 
 @app.route('/add_schedule', methods=['GET', 'POST'])

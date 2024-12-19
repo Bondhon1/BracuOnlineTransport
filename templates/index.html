@@ -3,53 +3,57 @@
 
 <div class="container mt-5">
     <!-- Hero Section -->
-    <div class="jumbotron text-center bg-light">
-        <h1 class="display-4">Welcome to the University Transport System</h1>
+    <div class="jumbotron text-center bg-light p-5 rounded-3 shadow-sm">
+        <h1 class="display-4 mb-3">Welcome to the University Transport System</h1>
         <p class="lead">Convenient and reliable transportation for all university members.</p>
         <hr class="my-4">
         <p>Book your bus tickets online with ease and get to your destination on time.</p>
-        <a class="btn btn-primary btn-lg" href="{{ url_for('book_ticket') }}" role="button">Book a Ticket</a>
+        <a class="btn btn-primary btn-lg mt-3" href="{{ url_for('book_ticket') }}" role="button">Book a Ticket</a>
     </div>
 
     <!-- Image Gallery Section -->
-    <div class="row">
-        <div class="col-md-4 image-zoom">
-          <img src="{{ url_for('static', filename='images/bus1.jpg') }}" alt="Demo Image 1" class="img-fluid">
+    <div class="row text-center mt-5">
+        <div class="col-md-4 mb-4">
+            <div class="image-container">
+                <img src="{{ url_for('static', filename='images/bus1.jpg') }}" alt="Demo Image 1" class="img-fluid rounded shadow-sm">
+            </div>
         </div>
-        <div class="col-md-4 image-zoom">
-          <img src="{{ url_for('static', filename='images/bus2.jpg') }}" alt="Demo Image 2" class="img-fluid">
+        <div class="col-md-4 mb-4">
+            <div class="image-container">
+                <img src="{{ url_for('static', filename='images/bus2.jpg') }}" alt="Demo Image 2" class="img-fluid rounded shadow-sm">
+            </div>
         </div>
-        <div class="col-md-4 image-zoom">
-          <img src="{{ url_for('static', filename='images/bus3.jpg') }}" alt="Demo Image 3" class="img-fluid">
+        <div class="col-md-4 mb-4">
+            <div class="image-container">
+                <img src="{{ url_for('static', filename='images/bus3.jpg') }}" alt="Demo Image 3" class="img-fluid rounded shadow-sm">
+            </div>
         </div>
-      </div>
-      
+    </div>
 
     <!-- Information Section -->
-    <div class="row">
+    <div class="row mt-5">
         <div class="col-lg-6 mb-4">
-            <h3>Why Choose Us?</h3>
+            <h3 class="fw-bold">Why Choose Us?</h3>
             <p class="text-justify">Our university transport system is designed to provide reliable, comfortable, and timely bus services for all students, faculty, and staff. We operate on designated routes covering major areas in and around the city, ensuring everyone can commute with ease.</p>
         </div>
         <div class="col-lg-6 mb-4">
-            <h3>Service Highlights</h3>
-            <ul class="list-unstyled">
-                <li><i class="fas fa-check-circle text-success"></i> Well-maintained buses</li>
-                <li><i class="fas fa-check-circle text-success"></i> Professional drivers</li>
-                <li><i class="fas fa-check-circle text-success"></i> Punctual departures</li>
-                <li><i class="fas fa-check-circle text-success"></i> Multiple routes</li>
-                <li><i class="fas fa-check-circle text-success"></i> Affordable pricing</li>
+            <h3 class="fw-bold">Service Highlights</h3>
+            <ul class="list-group list-group-flush">
+                <li class="list-group-item"><i class="fas fa-check-circle text-success me-2"></i> Well-maintained buses</li>
+                <li class="list-group-item"><i class="fas fa-check-circle text-success me-2"></i> Professional drivers</li>
+                <li class="list-group-item"><i class="fas fa-check-circle text-success me-2"></i> Punctual departures</li>
+                <li class="list-group-item"><i class="fas fa-check-circle text-success me-2"></i> Multiple routes</li>
+                <li class="list-group-item"><i class="fas fa-check-circle text-success me-2"></i> Affordable pricing</li>
             </ul>
         </div>
     </div>
 
     <!-- Call to Action Section -->
-    <div class="text-center py-5 bg-light rounded">
-        <h3>Ready to book your next ride?</h3>
-        <p>Log in to access our booking system and reserve your seat today.</p>
-        <a href="{{ url_for('login') }}" class="btn btn-outline-primary btn-lg">Log In</a>
+    <div class="text-center py-5 bg-light rounded mt-5 shadow-sm">
+        <h3 class="fw-bold">Ready to book your next ride?</h3>
+        <p class="mb-4">Log in to access our booking system and reserve your seat today.</p>
+        <a href="{{ url_for('login') }}" class="btn btn-outline-primary btn-lg me-2">Log In</a>
         <a href="{{ url_for('register') }}" class="btn btn-primary btn-lg">Register</a>
-        
     </div>
 </div>
 

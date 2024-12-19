@@ -147,3 +147,38 @@ body {
 .text-center .btn {
     min-width: 120px; /* Uniform button width */
 }
+
+/* Custom Image Container */
+.image-container img {
+    width: 100%;
+    height: auto;
+    object-fit: cover;
+    transition: transform 0.3s ease;
+}
+
+.image-container:hover img {
+    transform: scale(1.05); /* Zoom effect */
+}
+
+/* Hero Section */
+.jumbotron {
+    background: #f8f9fa;
+    padding: 3rem 2rem;
+    text-align: center;
+}
+
+/* Call to Action Section */
+.bg-light {
+    background: #f8f9fa !important;
+    padding: 0.75rem 1.5rem;
+    border-radius: 10px;
+}
+
+.btn {
+    padding: 0.5rem 1rem;
+    font-size: 1rem;
+}
+
+.text-justify {
+    text-align: justify !important;
+}
