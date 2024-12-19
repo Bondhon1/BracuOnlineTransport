@@ -140,3 +140,10 @@ body {
     background-color: #dc3545;
     border: none;
 }
+.form-group {
+    margin-bottom: 1.5rem !important; /* Extra spacing if needed */
+}
+
+.text-center .btn {
+    min-width: 120px; /* Uniform button width */
+}
