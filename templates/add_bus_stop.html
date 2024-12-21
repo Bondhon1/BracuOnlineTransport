@@ -1,7 +1,22 @@
 {% extends 'app.html' %}
 
 {% block content %}
-<div class="container mt-5">
+<div class="container mt-2">
+    {% with messages = get_flashed_messages(with_categories=true) %}
+    {% if messages %}
+        <div class="flash-messages">
+            {% for category, message in messages %}
+            <div class="alert alert-{{ category }} alert-dismissible fade show" role="alert">
+                {{ message }}
+                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+            </div>
+            {% endfor %}
+        </div>
+    {% endif %}
+    {% endwith %}
+</div>
+
+<div class="container mt-2">
     <h2 class="text-center">Add Bus Stop</h2>
     <form method="POST" action="{{ url_for('add_bus_stop') }}">
 
@@ -36,18 +51,18 @@
         </div>
 
         <div class="form-group">
-            <label for="seat_numbers">Seat Numbers (e.g., A1, A2, B1)</label>
+            <label for="seat_numbers">Seat Numbers (comma-separated, e.g., A1, A2, B1)</label>
             <input type="text" id="seat_numbers" name="seat_numbers" class="form-control" required>
         </div>
 
         <div class="form-group">
-            <label for="male_seats">Male Seats</label>
-            <input type="number" id="male_seats" name="male_seats" class="form-control" required>
+            <label for="male_reserved_seats">Reserved Seats for Males (comma-separated, e.g., A1, B1)</label>
+            <input type="text" id="male_reserved_seats" name="male_reserved_seats" class="form-control">
         </div>
 
         <div class="form-group">
-            <label for="female_seats">Female Seats</label>
-            <input type="number" id="female_seats" name="female_seats" class="form-control" required>
+            <label for="female_reserved_seats">Reserved Seats for Females (comma-separated, e.g., A2, B2)</label>
+            <input type="text" id="female_reserved_seats" name="female_reserved_seats" class="form-control">
         </div>
 
         <button type="submit" class="btn btn-success">Add Bus Stop</button>

@@ -182,3 +182,6 @@ body {
 .text-justify {
     text-align: justify !important;
 }
+.flash-messages {
+    margin-bottom: 1rem;
+}

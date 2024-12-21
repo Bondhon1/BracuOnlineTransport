@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Host: 127.0.0.1
--- Generation Time: Dec 18, 2024 at 04:27 PM
+-- Generation Time: Dec 21, 2024 at 04:03 PM
 -- Server version: 10.4.32-MariaDB
 -- PHP Version: 8.0.30
 
@@ -39,8 +39,7 @@ CREATE TABLE `admins` (
 --
 
 INSERT INTO `admins` (`admin_id`, `name`, `email`, `password`) VALUES
-(1, 'bondhon', 'bondhon1@gmail.com', 'bondhon1'),
-(3, 'sadman', 'sadman@gmail.com', '123456');
+(1, 'bondhon', 'bondhon1@gmail.com', 'bondhon1');
 
 -- --------------------------------------------------------
 
@@ -106,18 +105,21 @@ CREATE TABLE `feedback` (
   `created_at` timestamp NOT NULL DEFAULT current_timestamp(),
   `name` varchar(50) NOT NULL,
   `email` varchar(50) NOT NULL,
-  `reply` varchar(200) DEFAULT NULL
+  `reply` varchar(200) DEFAULT NULL,
+  `viewed` tinyint(1) DEFAULT 0
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 --
 -- Dumping data for table `feedback`
 --
 
-INSERT INTO `feedback` (`id`, `user_id`, `bus_number`, `feedback`, `rating`, `journey_date`, `created_at`, `name`, `email`, `reply`) VALUES
-(1, 3, '1', 'yjtasfcuhcu sdiuvh sdiuch Worst', 1, '2024-12-17', '2024-12-18 03:49:13', 'Test2', 'test@gmail.com', '?'),
-(2, 3, '02', 'iusd jhsdsh iusdh kids', 5, '2024-12-09', '2024-12-18 04:12:17', 'Test2', 'test@gmail.com', '?'),
-(3, 3, '3', 'good dggfchcfgh', 2, '2024-12-04', '2024-12-18 04:32:47', 'Test2', 'test@gmail.com', '!'),
-(4, 3, '01', 'dth fgbgfgb dfb xf dfbdg', 3, '2024-12-17', '2024-12-18 14:17:44', 'Test2', 'test@gmail.com', '.....');
+INSERT INTO `feedback` (`id`, `user_id`, `bus_number`, `feedback`, `rating`, `journey_date`, `created_at`, `name`, `email`, `reply`, `viewed`) VALUES
+(1, 3, '1', 'yjtasfcuhcu sdiuvh sdiuch Worst', 1, '2024-12-17', '2024-12-18 03:49:13', 'Test2', 'test@gmail.com', '?', 1),
+(2, 3, '02', 'iusd jhsdsh iusdh kids', 5, '2024-12-09', '2024-12-18 04:12:17', 'Test2', 'test@gmail.com', '?', 1),
+(3, 3, '3', 'good dggfchcfgh', 2, '2024-12-04', '2024-12-18 04:32:47', 'Test2', 'test@gmail.com', '!', 1),
+(4, 3, '01', 'dth fgbgfgb dfb xf dfbdg', 3, '2024-12-17', '2024-12-18 14:17:44', 'Test2', 'test@gmail.com', '.....', 1),
+(5, 3, '2', 'zfd fdv dffv dfvvdfv', 5, '2024-12-18', '2024-12-19 13:02:18', 'Test2', 'test@gmail.com', 'ok', 1),
+(6, 3, '02', 'yg jhg hgf ygx jhgx', 4, '2024-12-20', '2024-12-21 05:47:18', 'Test2', 'test@gmail.com', '1', 1);
 
 -- --------------------------------------------------------
 
@@ -134,8 +136,8 @@ CREATE TABLE `route_stops` (
   `fare` decimal(10,2) NOT NULL,
   `stop_type` enum('pickup','dropoff') NOT NULL,
   `seat_numbers` text NOT NULL,
-  `male_seats` int(11) NOT NULL,
-  `female_seats` int(11) NOT NULL
+  `male_seats` text DEFAULT NULL,
+  `female_seats` text DEFAULT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 --
@@ -143,10 +145,7 @@ CREATE TABLE `route_stops` (
 --
 
 INSERT INTO `route_stops` (`stop_id`, `route_id`, `stop_name`, `pickup_time`, `dropoff_time`, `fare`, `stop_type`, `seat_numbers`, `male_seats`, `female_seats`) VALUES
-(1, 1, 'Abdullahpur', '06:40:00', '07:30:00', 90.00, 'pickup', '', 0, 0),
-(2, 6, 'Mirpur Bangla Collage', '06:20:00', '08:30:00', 90.00, 'pickup', '', 0, 0),
-(3, 1, 'House Building', '06:43:00', '07:30:00', 90.00, 'pickup', 'A1, A2, B1, B2', 2, 2),
-(4, 7, 'Kollyanpur', '07:00:00', '07:30:00', 50.00, 'pickup', 'A1,A2,B1,B2', 2, 2);
+(5, 6, 'Mirpur 2', '07:45:00', '08:30:00', 55.00, 'pickup', 'D1, D2, D3, D4', 'D1, D2', 'D3, D4');
 
 -- --------------------------------------------------------
 
@@ -166,15 +165,16 @@ CREATE TABLE `staffs` (
   `mobile_number` int(11) NOT NULL,
   `blood_group` varchar(20) NOT NULL,
   `registration_date` timestamp NOT NULL DEFAULT current_timestamp() ON UPDATE current_timestamp(),
-  `profile_image` varchar(200) NOT NULL
+  `profile_image` varchar(200) NOT NULL,
+  `verified` tinyint(1) DEFAULT 0
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 --
 -- Dumping data for table `staffs`
 --
 
-INSERT INTO `staffs` (`id`, `initial`, `email`, `password`, `full_name`, `pin`, `department`, `address`, `mobile_number`, `blood_group`, `registration_date`, `profile_image`) VALUES
-(1, 'ZAZ', 'izaz@bracu.ac.bd', '$2b$12$z0mfv8qGsrZ2CnsMPaxSweqN6z2/SiGFBzzUDKj5Zy7x6IUMslwMS', '', 0, '', '', 0, '', '2024-12-17 18:36:02', '');
+INSERT INTO `staffs` (`id`, `initial`, `email`, `password`, `full_name`, `pin`, `department`, `address`, `mobile_number`, `blood_group`, `registration_date`, `profile_image`, `verified`) VALUES
+(1, 'ZAZ', 'bondhonfiles@gmail.com', '$2b$12$z0mfv8qGsrZ2CnsMPaxSweqN6z2/SiGFBzzUDKj5Zy7x6IUMslwMS', 'Ihzaz Ahmed', 12345, 'CSE', 'Dhaka', 1711111111, 'O+', '2024-12-20 09:16:17', '20220211_172426.jpg', 0);
 
 -- --------------------------------------------------------
 
@@ -195,15 +195,16 @@ CREATE TABLE `users` (
   `blood_group` varchar(20) NOT NULL,
   `registration_date` timestamp NOT NULL DEFAULT current_timestamp() ON UPDATE current_timestamp(),
   `profile_image` varchar(200) NOT NULL,
-  `Gender` varchar(6) NOT NULL
+  `Gender` varchar(6) NOT NULL,
+  `verified` tinyint(1) DEFAULT 0
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 --
 -- Dumping data for table `users`
 --
 
-INSERT INTO `users` (`id`, `name`, `email`, `password`, `full_name`, `student_id`, `department`, `address`, `mobile_number`, `blood_group`, `registration_date`, `profile_image`, `Gender`) VALUES
-(3, 'Test2', 'test@gmail.com', '$2b$12$V1NHub3q9r.beB4JasL6/u8B0Ex1CpOWWQ7WUWNK0P/JAfXWatSR2', 'Bondhon', 22101459, 'CSE', '16/2 Rajshahi1', 1796381258, 'B+', '2024-12-17 18:00:08', '20220205_130930.jpg', 'male');
+INSERT INTO `users` (`id`, `name`, `email`, `password`, `full_name`, `student_id`, `department`, `address`, `mobile_number`, `blood_group`, `registration_date`, `profile_image`, `Gender`, `verified`) VALUES
+(3, 'Test2', 'test@gmail.com', '$2b$12$V1NHub3q9r.beB4JasL6/u8B0Ex1CpOWWQ7WUWNK0P/JAfXWatSR2', 'Bondhon', 22101459, 'CSE', '16/2 Rajshahi1', 1796381258, 'B+', '2024-12-21 13:48:36', '20220211_172451.jpg', 'Male', 1);
 
 -- --------------------------------------------------------
 
@@ -220,19 +221,20 @@ CREATE TABLE `vehicle_requests` (
   `capacity` int(11) NOT NULL,
   `status` varchar(50) DEFAULT 'Pending',
   `reply` text DEFAULT NULL,
-  `created_at` timestamp NOT NULL DEFAULT current_timestamp()
+  `created_at` timestamp NOT NULL DEFAULT current_timestamp(),
+  `viewed` tinyint(1) DEFAULT 0,
+  `pickup_time` time DEFAULT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 --
 -- Dumping data for table `vehicle_requests`
 --
 
-INSERT INTO `vehicle_requests` (`id`, `staff_id`, `journey_date`, `pickup_location`, `destination`, `capacity`, `status`, `reply`, `created_at`) VALUES
-(1, 1, '2012-12-24', 'BRACU', 'Abdullahpur', 10, 'Approved', '01', '2024-12-18 03:29:41'),
-(2, 1, '0000-00-00', 'BRACU', 'Badda', 4, 'Approved', '01', '2024-12-18 04:04:21'),
-(3, 1, '0000-00-00', 'BRACU', 'Badda', 4, 'Approved', '01', '2024-12-18 04:05:11'),
-(4, 1, '2024-12-12', 'asc', 'def', 2, 'Pending', NULL, '2024-12-18 04:07:13'),
-(5, 1, '2024-12-12', 'Bracu', 'Badda', 6, 'Pending', NULL, '2024-12-18 04:34:45');
+INSERT INTO `vehicle_requests` (`id`, `staff_id`, `journey_date`, `pickup_location`, `destination`, `capacity`, `status`, `reply`, `created_at`, `viewed`, `pickup_time`) VALUES
+(9, 1, '2025-01-01', 'Badda', 'Mohakhali', 5, 'Approved', 'ok', '2024-12-20 13:34:50', 1, NULL),
+(10, 1, '2025-12-31', 'Dhaka', 'Rajshahi', 1, 'Approved', 'ok', '2024-12-20 17:48:45', 1, NULL),
+(11, 1, '2022-12-21', 'Mars', 'Earth', 12, 'Approved', 'ok.....', '2024-12-21 05:49:58', 1, NULL),
+(12, 1, '2024-12-22', 'Dg', 'As', 12, 'Rejected', 'rejected', '2024-12-21 14:14:40', 1, '12:12:00');
 
 --
 -- Indexes for dumped tables
@@ -297,7 +299,7 @@ ALTER TABLE `vehicle_requests`
 -- AUTO_INCREMENT for table `admins`
 --
 ALTER TABLE `admins`
-  MODIFY `admin_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=5;
+  MODIFY `admin_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=10;
 
 --
 -- AUTO_INCREMENT for table `bus_routes`
@@ -315,31 +317,31 @@ ALTER TABLE `bus_schedules`
 -- AUTO_INCREMENT for table `feedback`
 --
 ALTER TABLE `feedback`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=5;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=7;
 
 --
 -- AUTO_INCREMENT for table `route_stops`
 --
 ALTER TABLE `route_stops`
-  MODIFY `stop_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=5;
+  MODIFY `stop_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=6;
 
 --
 -- AUTO_INCREMENT for table `staffs`
 --
 ALTER TABLE `staffs`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=3;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=6;
 
 --
 -- AUTO_INCREMENT for table `users`
 --
 ALTER TABLE `users`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=5;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=11;
 
 --
 -- AUTO_INCREMENT for table `vehicle_requests`
 --
 ALTER TABLE `vehicle_requests`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=6;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=13;
 
 --
 -- Constraints for dumped tables
