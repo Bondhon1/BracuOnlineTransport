@@ -36,13 +36,17 @@
         </div>
 
         <div class="form-group">
-            <label for="departure_time">Departure Time</label>
-            <input type="time" id="departure_time" name="departure_time" class="form-control" required>
+            <label for="stop_type">Stop Type</label>
+            <select id="stop_type" name="stop_type" class="form-control" required>
+                <option value="" disabled selected>Select Stop Type</option>
+                <option value="pickup">Pickup</option>
+                <option value="dropoff">Dropoff</option>
+            </select>
         </div>
 
         <div class="form-group">
-            <label for="arrival_time">Arrival Time</label>
-            <input type="time" id="arrival_time" name="arrival_time" class="form-control" required>
+            <label for="time">Time</label>
+            <input type="time" id="time" name="time" class="form-control" required>
         </div>
 
         <div class="form-group">

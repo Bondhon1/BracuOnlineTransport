@@ -1,4 +1,4 @@
-
+import datetime
 from flask import Flask, render_template, redirect, url_for, session, flash, request
 from flask_wtf import FlaskForm
 from datetime import datetime, date
@@ -15,7 +15,6 @@ from wtforms import SelectField, FloatField, TimeField
 from flask import jsonify, request
 from flask_mail import Mail, Message
 import random
-from flask_mail import Message
 
 
 app = Flask(__name__)
@@ -432,10 +431,17 @@ def dashboard():
     mysql.connection.commit()
 
     cursor.close()
-    message = request.args.get('message', None)
 
-    return render_template('dashboard.html', user=user, feedbacks=feedbacks, new_replies_count=new_replies_count)
+    # Fetch and remove the profile update message from the session
+    profile_update_message = session.pop('profile_update_message', None)
 
+    return render_template(
+        'dashboard.html', 
+        user=user, 
+        feedbacks=feedbacks, 
+        new_replies_count=new_replies_count, 
+        profile_update_message=profile_update_message
+    )
 
 
 @app.route('/staff_dashboard')
@@ -596,7 +602,7 @@ def update_profile():
         mobile_number = form.mobile_number.data
         blood_group = form.blood_group.data
 
-        #image upload
+        # Image upload
         if form.profile_image.data:
             image_file = form.profile_image.data
             filename = secure_filename(image_file.filename)
@@ -612,8 +618,20 @@ def update_profile():
             """, (full_name, student_id, department, gender, address, mobile_number, blood_group, filename, user_id))
             mysql.connection.commit()
             cursor.close()
+        else:
+            cursor = mysql.connection.cursor()
+            cursor.execute("""
+                UPDATE users 
+                SET full_name = %s, student_id = %s, department = %s, gender = %s, 
+                    address = %s, mobile_number = %s, blood_group = %s 
+                WHERE id = %s
+            """, (full_name, student_id, department, gender, address, mobile_number, blood_group, user_id))
+            mysql.connection.commit()
+            cursor.close()
 
-        return redirect(url_for('dashboard', message="Profile updated successfully!"))
+        # Store the success message in session
+        session['profile_update_message'] = "Profile updated successfully!"
+        return redirect(url_for('dashboard'))
 
     # Pre-fill form fields with user data
     cursor = mysql.connection.cursor()
@@ -631,7 +649,6 @@ def update_profile():
         form.blood_group.data = user[9]
 
     return render_template('update_profile.html', form=form)
-
 
 
 
@@ -686,6 +703,169 @@ def staff_update_profile():
             form.blood_group.data = staff[9]
 
     return render_template('staff_update_profile.html', form=form)
+
+
+
+@app.route('/select_route', methods=['GET', 'POST'])
+def select_route():
+    if 'user_id' not in session:
+        return redirect(url_for('login'))
+
+    cursor = mysql.connection.cursor()
+
+    # Fetch available routes
+    cursor.execute("SELECT route_id, route_name FROM bus_routes")
+    routes = cursor.fetchall()
+
+    # Prepare stop_data
+    cursor.execute("""
+        SELECT route_id, stop_id, stop_name, stop_type
+        FROM route_stops
+    """)
+    stops = cursor.fetchall()
+    stop_data = {}
+    for stop in stops:
+        route_id_key = stop[0]
+        if route_id_key not in stop_data:
+            stop_data[route_id_key] = []
+        stop_data[route_id_key].append({
+            'stop_id': stop[1],
+            'stop_name': stop[2],
+            'stop_type': stop[3]
+        })
+
+    cursor.close()
+    return render_template('select_route.html', routes=routes, stop_data=stop_data)
+
+@app.route('/select_seat', methods=['GET', 'POST'])
+def select_seat():
+    if 'user_id' not in session:
+        return redirect(url_for('login'))
+
+    user_id = session['user_id']
+    route_id = request.args.get('route_id')
+    journey_type = request.args.get('journey_type')
+    stop_id = request.args.get('stop_id')
+    journey_date = date.today()
+
+    if not route_id or not journey_type or not stop_id:
+        
+        return redirect(url_for('select_route'))
+
+    # Ensure route_id and stop_id are integers
+    try:
+        route_id = int(route_id) if route_id else None
+        stop_id = int(stop_id) if stop_id else None
+    except ValueError:
+        flash("Invalid route or stop selected. Please try again.", "danger")
+        return redirect(url_for('select_route'))
+
+    cursor = mysql.connection.cursor()
+
+    # Check if user already has a booking for this journey type and date
+    cursor.execute("""
+        SELECT seat_number
+        FROM seat_bookings
+        WHERE user_id = %s AND journey_type = %s AND journey_date = CURDATE()
+    """, (user_id, journey_type))
+    existing_booking = cursor.fetchone()
+    print("Existing Booking Query Result:", existing_booking)
+
+    if existing_booking:
+        flash(f"You already have a {journey_type} booking for today. Please choose another type journey.", "danger")
+        return redirect(url_for('dashboard'))
+
+    # Fetch user gender
+    cursor.execute("SELECT gender FROM users WHERE id = %s", (user_id,))
+    result = cursor.fetchone()
+    if result:
+        user_gender = result[0]
+    else:
+        flash("Unable to fetch user details. Please contact admin.", "danger")
+        return redirect(url_for('select_route'))
+
+    # Fetch stop details
+    cursor.execute("""
+        SELECT seat_numbers, male_seats, female_seats
+        FROM route_stops
+        WHERE stop_id = %s
+    """, (stop_id,))
+    stop_details = cursor.fetchone()
+
+    if not stop_details:
+        
+        return redirect(url_for('select_route'))
+
+    seat_numbers = stop_details[0].split(',')
+    male_seats = stop_details[1].split(',') if stop_details[1] else []
+    female_seats = stop_details[2].split(',') if stop_details[2] else []
+
+    # Fetch reserved seats
+    cursor.execute("""
+        SELECT seat_number
+        FROM seat_bookings
+        WHERE route_id = %s AND stop_id = %s AND journey_date = CURDATE()
+    """, (route_id, stop_id))
+    reserved_seats = [row[0] for row in cursor.fetchall()]
+    print("Reserved Seats Query Result:", reserved_seats)
+
+    cursor.close()
+
+    return render_template(
+        'select_seat.html',
+        route_id=route_id,
+        journey_type=journey_type,
+        stop_id=stop_id,
+        seat_numbers=seat_numbers,
+        male_seats=male_seats,
+        female_seats=female_seats,
+        reserved_seats=reserved_seats,
+        user_gender=user_gender
+    )
+
+
+@app.route('/confirm_booking', methods=['POST'])
+def confirm_booking():
+    if 'user_id' not in session:
+        return redirect(url_for('login'))
+
+    user_id = session['user_id']
+    route_id = request.form.get('route_id')
+    journey_type = request.form.get('journey_type')
+    stop_id = request.form.get('stop_id')
+    seat_number = request.form.get('seat_number')
+    journey_date = date.today()
+
+    if not route_id or not journey_type or not stop_id or not seat_number:
+        
+        return redirect(url_for('select_route'))
+
+    cursor = mysql.connection.cursor()
+
+    # Check if user already has a booking for this journey type and date
+    cursor.execute("""
+        SELECT seat_number
+        FROM seat_bookings
+        WHERE user_id = %s AND journey_type = %s AND journey_date = %s
+    """, (user_id, journey_type, journey_date))
+    existing_booking = cursor.fetchone()
+
+    if existing_booking:
+        flash(f"You already have a {journey_type} booking for today. Please choose a dropoff journey.", "danger")
+        return redirect(url_for('select_route'))
+
+    # Insert the booking
+    cursor.execute("""
+        INSERT INTO seat_bookings (user_id, route_id, stop_id, seat_number, journey_type, journey_date)
+        VALUES (%s, %s, %s, %s, %s, %s)
+    """, (user_id, route_id, stop_id, seat_number, journey_type, journey_date))
+    mysql.connection.commit()
+    cursor.close()
+
+    flash("Booking confirmed successfully!", "success")
+    return redirect(url_for('dashboard'))
+
+
 
 @app.route('/request_vehicle', methods=['GET', 'POST'])
 def request_vehicle():
@@ -875,63 +1055,6 @@ def calculate_average_rating(feedbacks):
     return total_rating / len(feedbacks)
 
 
-@app.route('/book_ticket')
-def book_ticket():
-    return render_template('book_ticket.html')
-
-
-@app.route('/add_schedule', methods=['GET', 'POST'])
-def add_schedule():
-    if 'admin_id' not in session:
-        return redirect(url_for('adminlogin'))
-
-    form = AddScheduleForm()
-
-    if form.validate_on_submit():
-        route_name = form.route_name.data
-        departure_time = form.departure_time.data
-        arrival_time = form.arrival_time.data
-        bus_number = form.bus_number.data
-        driver_name = form.driver_name.data
-        capacity = form.capacity.data
-
-        cursor = mysql.connection.cursor()
-        cursor.execute("""
-            INSERT INTO bus_schedules (route_name, departure_time, arrival_time, bus_number, driver_name, capacity)
-            VALUES (%s, %s, %s, %s, %s, %s)
-        """, (route_name, departure_time, arrival_time, bus_number, driver_name, capacity))
-        mysql.connection.commit()
-        cursor.close()
-
-        flash("Bus schedule added successfully!", "success")
-        return redirect(url_for('view_schedules'))
-
-    return render_template('add_schedule.html', form=form)
-
-@app.route('/view_schedules')
-def view_schedules():
-    if 'admin_id' not in session:
-        return redirect(url_for('adminlogin'))
-
-    cursor = mysql.connection.cursor()
-    cursor.execute("SELECT * FROM bus_schedules")
-    schedules = cursor.fetchall()
-    cursor.close()
-
-    return render_template('view_schedules.html', schedules=schedules)
-
-@app.route('/delete_schedule/<int:schedule_id>', methods=['POST'])
-def delete_schedule(schedule_id):
-    if 'admin_id' not in session:
-        return redirect(url_for('adminlogin'))
-
-    cursor = mysql.connection.cursor()
-    cursor.execute("DELETE FROM bus_schedules WHERE id=%s", (schedule_id,))
-    mysql.connection.commit()
-    cursor.close()
-
-    flash("Schedule deleted successfully.", "success")
-    return redirect(url_for('view_schedules'))
 @app.route('/add_bus_route', methods=['GET', 'POST'])
 def add_bus_route():
     if 'admin_id' not in session:
@@ -966,8 +1089,8 @@ def add_bus_stop():
     if request.method == 'POST':
         bus_id = request.form['bus_id']
         stop_name = request.form['stop_name']
-        departure_time = request.form['departure_time']
-        arrival_time = request.form['arrival_time']
+        stop_type = request.form['stop_type']
+        time = request.form['time']
         fare = request.form['fare']
         seat_numbers = request.form['seat_numbers']
         male_reserved_seats = request.form.get('male_reserved_seats', "")
@@ -984,18 +1107,29 @@ def add_bus_stop():
             flash(f"Conflict in reserved seats: {', '.join(conflicting_seats)}", "danger")
             return redirect(url_for('add_bus_stop'))
 
+        # Insert data into the database
         cursor = mysql.connection.cursor()
         cursor.execute("""
-            INSERT INTO route_stops (route_id, stop_name, pickup_time, dropoff_time, fare, seat_numbers, male_seats, female_seats)
-            VALUES (%s, %s, %s, %s, %s, %s, %s, %s)
-        """, (bus_id, stop_name, departure_time, arrival_time, fare, ",".join(all_seats), ",".join(male_seats), ",".join(female_seats)))
+            INSERT INTO route_stops (route_id, stop_name, stop_type, pickup_time, dropoff_time, fare, seat_numbers, male_seats, female_seats)
+            VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s)
+        """, (
+            bus_id,
+            stop_name,
+            stop_type,
+            time if stop_type == 'pickup' else None,
+            time if stop_type == 'dropoff' else None,
+            fare,
+            ",".join(all_seats),
+            ",".join(male_seats),
+            ",".join(female_seats)
+        ))
         mysql.connection.commit()
         cursor.close()
 
         flash('Bus stop added successfully!', 'success')
         return redirect(url_for('admin_dashboard'))
 
-    # Fetch bus routes 
+    # Fetch bus routes
     cursor = mysql.connection.cursor()
     cursor.execute("SELECT route_id, route_name FROM bus_routes")
     buses = cursor.fetchall()

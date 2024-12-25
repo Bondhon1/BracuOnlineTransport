@@ -1,0 +1,76 @@
+{% extends 'app.html' %}
+
+{% block content %}
+<div class="container mt-5">
+    <h2 class="text-center mb-4">Select Route</h2>
+    <form id="routeForm" method="GET" action="{{ url_for('select_seat') }}">
+        <div class="form-group">
+            <label for="route_id">Select Route:</label>
+            <select id="route_id" name="route_id" class="form-control" required>
+                <option value="" disabled selected>Choose a route</option>
+                {% for route in routes %}
+                <option value="{{ route[0] }}">{{ route[1] }}</option>
+                {% endfor %}
+            </select>
+        </div>
+
+        <div class="form-group mt-3">
+            <label for="journey_type">Select Journey Type:</label>
+            <select id="journey_type" name="journey_type" class="form-control" required>
+                <option value="" disabled selected>Choose journey type</option>
+                <option value="pickup">Pickup</option>
+                <option value="dropoff">Dropoff</option>
+            </select>
+        </div>
+
+        <div class="form-group mt-3">
+            <label for="stop_id">Select Stop:</label>
+            <select id="stop_id" name="stop_id" class="form-control" required>
+                <option value="" disabled selected>Select a stop</option>
+            </select>
+        </div>
+
+        <button type="submit" class="btn btn-primary mt-3">Next</button>
+    </form>
+</div>
+
+<script>
+    const stopData = {{ stop_data | tojson | safe }};
+    const routeForm = document.getElementById('routeForm');
+
+    // Dynamically populate stops
+    document.getElementById('route_id').addEventListener('change', updateStops);
+    document.getElementById('journey_type').addEventListener('change', updateStops);
+
+    function updateStops() {
+        const routeId = document.getElementById('route_id').value;
+        const journeyType = document.getElementById('journey_type').value;
+        const stopSelect = document.getElementById('stop_id');
+
+        stopSelect.innerHTML = '<option value="" disabled selected>Select a stop</option>';
+
+        if (routeId && stopData[routeId]) {
+            stopData[routeId].forEach(stop => {
+                if (stop.stop_type === journeyType) {
+                    const option = document.createElement('option');
+                    option.value = stop.stop_id;
+                    option.textContent = stop.stop_name;
+                    stopSelect.appendChild(option);
+                }
+            });
+        }
+    }
+
+    routeForm.addEventListener('submit', function (event) {
+        // Ensure all fields are selected before submission
+        const routeId = document.getElementById('route_id').value;
+        const journeyType = document.getElementById('journey_type').value;
+        const stopId = document.getElementById('stop_id').value;
+
+        if (!routeId || !journeyType || !stopId) {
+            event.preventDefault();
+            alert('Please fill all fields before proceeding.');
+        }
+    });
+</script>
+{% endblock %}
