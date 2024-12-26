@@ -397,17 +397,17 @@ def adminlogin():
 def dashboard():
     if 'user_id' not in session:
         return redirect(url_for('login'))
-    
+
     user_id = session['user_id']
 
     # Fetch user details
     cursor = mysql.connection.cursor()
     cursor.execute("SELECT * FROM users WHERE id=%s", (user_id,))
     user = cursor.fetchone()
-    
+
     # Fetch user's feedbacks and admin replies
     cursor.execute("""
-        SELECT feedback, rating, reply 
+        SELECT feedback, rating, reply, journey_date 
         FROM feedback 
         WHERE user_id=%s 
         ORDER BY journey_date DESC
@@ -430,18 +430,66 @@ def dashboard():
     """, (user_id,))
     mysql.connection.commit()
 
+    # Fetch user's past travel history with route and stop names
+    cursor.execute("""
+        SELECT br.route_name, rs.stop_name, sb.seat_number, sb.journey_type, sb.journey_date 
+        FROM seat_bookings sb
+        JOIN bus_routes br ON sb.route_id = br.route_id
+        JOIN route_stops rs ON sb.stop_id = rs.stop_id
+        WHERE sb.user_id = %s AND sb.journey_date < CURDATE()
+        ORDER BY sb.journey_date DESC
+    """, (user_id,))
+    travel_history = cursor.fetchall()
+
     cursor.close()
 
     # Fetch and remove the profile update message from the session
     profile_update_message = session.pop('profile_update_message', None)
 
     return render_template(
-        'dashboard.html', 
-        user=user, 
-        feedbacks=feedbacks, 
-        new_replies_count=new_replies_count, 
-        profile_update_message=profile_update_message
+        'dashboard.html',
+        user=user,
+        feedbacks=feedbacks,
+        new_replies_count=new_replies_count,
+        profile_update_message=profile_update_message,
+        travel_history=travel_history
     )
+@app.route('/add_feedback/<route_name>/<journey_date>', methods=['GET', 'POST'])
+def add_feedback(route_name, journey_date):
+    if 'user_id' not in session:
+        return redirect(url_for('login'))
+
+    user_id = session['user_id']
+
+    if request.method == 'POST':
+        rating = request.form.get('rating')
+        feedback = request.form.get('feedback')
+
+        cursor = mysql.connection.cursor()
+
+        # Fetch username and email for the user
+        cursor.execute("SELECT name, email FROM users WHERE id = %s", (user_id,))
+        user_details = cursor.fetchone()
+        if not user_details:
+            flash("Unable to fetch user details. Please contact admin.", "danger")
+            return redirect(url_for('dashboard'))
+
+        username, email = user_details
+
+        # Insert feedback with username and email
+        cursor.execute("""
+            INSERT INTO feedback (user_id, name, email, route_name, journey_date, rating, feedback)
+            VALUES (%s, %s, %s, %s, %s, %s, %s)
+        """, (user_id, username, email, route_name, journey_date, rating, feedback))
+        mysql.connection.commit()
+        cursor.close()
+
+        flash("Feedback submitted successfully!", "success")
+        return redirect(url_for('dashboard'))
+
+    return render_template('add_feedback.html', route_name=route_name, journey_date=journey_date)
+
+
 
 
 @app.route('/staff_dashboard')
@@ -557,17 +605,30 @@ def add_admin():
 
     return render_template('add_admin.html', form=form)
 
-@app.route('/view_users')
+@app.route('/view_users', methods=['GET', 'POST'])
 def view_users():
     if 'admin_id' not in session:
         return redirect(url_for('adminlogin'))
 
+
+    search_term = request.args.get('search', '')  # Get the search query from the URL parameters
+   
     cursor = mysql.connection.cursor()
-    cursor.execute("SELECT * FROM users")
+
+
+    if search_term:
+        # If there is a search term, filter users by ID or name
+        cursor.execute("SELECT * FROM users WHERE id LIKE %s OR name LIKE %s", ('%' + search_term + '%', '%' + search_term + '%'))
+    else:
+        # Otherwise, get all users
+        cursor.execute("SELECT * FROM users")
+   
     users = cursor.fetchall()
     cursor.close()
 
-    return render_template('view_users.html', users=users)
+
+    return render_template('view_users.html', users=users, search_term=search_term)
+
 
 # Define the route to remove a user
 @app.route('/remove_user/<int:user_id>', methods=['POST'])
@@ -575,13 +636,55 @@ def remove_user(user_id):
     if 'admin_id' not in session:
         return redirect(url_for('adminlogin'))
 
+
     cursor = mysql.connection.cursor()
     cursor.execute("DELETE FROM users WHERE id=%s", (user_id,))
     mysql.connection.commit()
     cursor.close()
 
+
     flash("User removed successfully", "success")
     return redirect(url_for('view_users'))
+
+@app.route('/view_faculty_staff')
+def view_faculty_staff():
+    if 'admin_id' not in session:
+        return redirect(url_for('adminlogin'))
+   
+    search_term = request.args.get('search', '')  # Get the search query from the URL parameters
+
+
+    cursor = mysql.connection.cursor()
+    if search_term:
+        # If there is a search term, filter staff by ID or full name
+        cursor.execute("SELECT id, full_name, email FROM staffs WHERE id LIKE %s OR full_name LIKE %s",
+                       ('%' + search_term + '%', '%' + search_term + '%'))
+    else:
+        # Otherwise, get all staff
+        cursor.execute("SELECT id, full_name, email FROM staffs")
+
+
+    staffs = cursor.fetchall()
+    cursor.close()
+
+
+    return render_template('view_faculty_staff.html', staffs=staffs, search_term=search_term)
+
+# Route for removing staff
+@app.route('/remove_staff/<int:staff_id>', methods=['POST'])
+def remove_staff(staff_id):
+    if 'admin_id' not in session:
+        return redirect(url_for('adminlogin'))
+
+
+    cursor = mysql.connection.cursor()
+    cursor.execute("DELETE FROM staffs WHERE id=%s", (staff_id,))
+    mysql.connection.commit()
+    cursor.close()
+
+
+    flash("Staff member removed successfully", "success")
+    return redirect(url_for('view_faculty_staff'))
 
 
 # Define the route for updating the user's profile
@@ -865,7 +968,120 @@ def confirm_booking():
     flash("Booking confirmed successfully!", "success")
     return redirect(url_for('dashboard'))
 
+@app.route('/send_otp', methods=['POST'])
+def send_otp():
+    if 'user_id' not in session:
+        return redirect(url_for('login'))
 
+    user_id = session['user_id']
+    route_id = request.form.get('route_id')
+    journey_type = request.form.get('journey_type')
+    stop_id = request.form.get('stop_id')
+    seat_number = request.form.get('seat_number')
+    journey_date = date.today()
+
+    if not route_id or not journey_type or not stop_id or not seat_number:
+        flash("Incomplete booking details. Please try again.", "danger")
+        return redirect(url_for('select_seat', route_id=route_id, journey_type=journey_type, stop_id=stop_id))
+
+    cursor = mysql.connection.cursor()
+
+    # Re-check if the seat is still available
+    cursor.execute("""
+        SELECT seat_number
+        FROM seat_bookings
+        WHERE route_id = %s AND stop_id = %s AND seat_number = %s AND journey_date = %s
+    """, (route_id, stop_id, seat_number, journey_date))
+    if cursor.fetchone():
+        flash("The selected seat has already been booked. Please choose another seat.", "danger")
+        return redirect(url_for('select_seat', route_id=route_id, journey_type=journey_type, stop_id=stop_id))
+
+    # Generate OTP and store temporarily
+    otp = generate_otp()
+    session['otp'] = otp
+    session['booking_details'] = {
+        'route_id': route_id,
+        'journey_type': journey_type,
+        'stop_id': stop_id,
+        'seat_number': seat_number,
+        'journey_date': journey_date,
+    }
+    cursor = mysql.connection.cursor()
+    cursor.execute("SELECT email FROM users WHERE id = %s", (user_id,))
+    result = cursor.fetchone()
+    cursor.close()
+
+    if result:
+        user_email = result[0]
+        print("User Email:", user_email)
+        print("Generated OTP:", otp)
+
+        # Send email (using Flask-Mail or smtplib)
+        try:
+            msg = Message(
+                subject="Your OTP for Seat Booking",
+                sender=app.config['MAIL_USERNAME'],
+                recipients=[user_email],
+                body=f"Your OTP is {otp}. Please use this to confirm your booking."
+            )
+            mail.send(msg)
+            
+        except Exception as e:
+            print("Error sending OTP:", e)
+            flash("Failed to send OTP. Please try again later.", "danger")
+    else:
+        flash("User email not found. Please contact support.", "danger")
+
+
+    cursor.close()
+    return redirect(url_for('confirm_otp', message="OTP has been sent to your inbox.")) 
+
+@app.route('/confirm_otp', methods=['GET', 'POST'])
+def confirm_otp():
+    if 'user_id' not in session:
+        return redirect(url_for('login'))
+
+    if request.method == 'POST':
+        user_otp = request.form.get('otp')
+        session_otp = session.get('otp')
+        booking_details = session.get('booking_details')
+        
+        if not booking_details or str(user_otp) != str(session_otp):
+            flash("Invalid or expired OTP. Please try again.", "danger")
+            return redirect(url_for('select_seat', route_id=booking_details['route_id'], 
+                                    journey_type=booking_details['journey_type'], stop_id=booking_details['stop_id'], journey_date=booking_details['journey_date']))
+
+        cursor = mysql.connection.cursor()
+
+        # Final check for seat availability
+        cursor.execute("""
+            SELECT seat_number
+            FROM seat_bookings
+            WHERE route_id = %s AND stop_id = %s AND seat_number = %s AND journey_date = %s
+        """, (booking_details['route_id'], booking_details['stop_id'], booking_details['seat_number'], booking_details['journey_date']))
+        if cursor.fetchone():
+            flash("The selected seat has already been booked by another user. Please choose a different seat.", "danger")
+            return redirect(url_for('select_seat', route_id=booking_details['route_id'], 
+                                    journey_type=booking_details['journey_type'], stop_id=booking_details['stop_id']))
+
+        # Confirm booking
+        
+        cursor.execute("""
+            INSERT INTO seat_bookings (user_id, route_id, stop_id, seat_number, journey_type, journey_date)
+            VALUES (%s, %s, %s, %s, %s, %s)
+        """, (session['user_id'], booking_details['route_id'], booking_details['stop_id'], 
+              booking_details['seat_number'], booking_details['journey_type'], date.today()))
+        mysql.connection.commit()
+        cursor.close()
+
+        # Clear session data
+        session.pop('otp', None)
+        session.pop('booking_details', None)
+
+        flash("Booking confirmed successfully!", "success")
+        return redirect(url_for('dashboard'))
+
+    return render_template('confirm_otp.html')
 
 @app.route('/request_vehicle', methods=['GET', 'POST'])
 def request_vehicle():
