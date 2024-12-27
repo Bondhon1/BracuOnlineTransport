@@ -1,0 +1,26 @@
+{% extends 'app.html' %}
+
+{% block content %}
+<div class="container mt-5">
+  <h2 class="text-center mb-4">Add Feedback</h2>
+  <form method="POST">
+    <div class="form-group">
+      <label>Route Name</label>
+      <input type="text" class="form-control" value="{{ route_name }}" readonly>
+    </div>
+    <div class="form-group mt-3">
+      <label>Journey Date</label>
+      <input type="text" class="form-control" value="{{ journey_date }}" readonly>
+    </div>
+    <div class="form-group mt-3">
+      <label>Rating (1 to 5)</label>
+      <input type="number" name="rating" class="form-control" min="1" max="5" required>
+    </div>
+    <div class="form-group mt-3">
+      <label>Feedback</label>
+      <textarea name="feedback" class="form-control" rows="4" required></textarea>
+    </div>
+    <button type="submit" class="btn btn-primary mt-3">Submit Feedback</button>
+  </form>
+</div>
+{% endblock %}

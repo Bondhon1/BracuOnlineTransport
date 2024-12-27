@@ -6,12 +6,12 @@
     <div id="seat_grid" class="seat-grid mt-4">
         <p class="text-muted">Select an available seat below:</p>
     </div>
-    <form method="POST" action="{{ url_for('confirm_booking') }}">
+    <form id="otpForm" method="POST" action="{{ url_for('send_otp') }}">
         <input type="hidden" name="route_id" value="{{ route_id }}">
         <input type="hidden" name="journey_type" value="{{ journey_type }}">
         <input type="hidden" name="stop_id" value="{{ stop_id }}">
         <input type="hidden" id="seat_number" name="seat_number">
-        <button type="submit" class="btn btn-primary mt-3">Confirm Booking</button>
+        <button type="submit" class="btn btn-primary mt-3" id="sendOtpBtn" disabled>Send OTP</button>
     </form>
 </div>
 
@@ -26,6 +26,8 @@
     console.log("Reserved Seats:", reservedSeats);
 
     const seatGrid = document.getElementById('seat_grid');
+    const seatNumberInput = document.getElementById('seat_number');
+    const sendOtpBtn = document.getElementById('sendOtpBtn');
     seatGrid.innerHTML = ''; // Clear grid
 
     seatNumbers.forEach(seat => {
@@ -45,9 +47,13 @@
             seatDiv.classList.add('available');
             seatDiv.textContent = seat;
             seatDiv.addEventListener('click', () => {
+                // Highlight selected seat
                 document.querySelectorAll('.seat.selected').forEach(s => s.classList.remove('selected'));
                 seatDiv.classList.add('selected');
-                document.querySelector('[name="seat_number"]').value = seat;
+                seatNumberInput.value = seat;
+
+                // Enable OTP button
+                sendOtpBtn.disabled = false;
             });
         }
 

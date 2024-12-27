@@ -68,6 +68,49 @@
       </table>
     </div>
   </div>
+ 
+<!-- Travel History Section -->
+<div id="travel-history-section" class="card shadow mb-4">
+  <div class="card-header bg-secondary text-white">Your Past Travel History</div>
+  <div class="card-body">
+    {% if travel_history %}
+    <table class="table table-striped table-hover">
+      <thead class="thead-dark">
+        <tr>
+          <th>Route Name</th>
+          <th>Stop Name</th>
+          <th>Seat Number</th>
+          <th>Journey Type</th>
+          <th>Journey Date</th>
+          <th>Action</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for record in travel_history %}
+        <tr>
+          <td>{{ record[0] }}</td>
+          <td>{{ record[1] }}</td>
+          <td>{{ record[2] }}</td>
+          <td>{{ record[3].capitalize() }}</td>
+          <td>{{ record[4] }}</td>
+          <td>
+            {% if record[0] and record[4] %}
+<a href="{{ url_for('add_feedback', route_name=record[0], journey_date=record[4]) }}" class="btn btn-info">
+    Add Feedback
+</a>
+{% else %}
+<span class="text-muted">Feedback not available</span>
+{% endif %}
+          </td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+    {% else %}
+    <p>No past travel history available.</p>
+    {% endif %}
+  </div>
+</div>
 
   <!-- Feedback Section -->
   <div id="feedback-section" class="card shadow mb-4">
@@ -79,7 +122,9 @@
           <tr>
             <th>Feedback</th>
             <th>Rating</th>
+            <th>Journey Date</th>
             <th>Reply</th>
+            
           </tr>
         </thead>
         <tbody>
@@ -87,6 +132,7 @@
           <tr>
             <td>{{ feedback[0] }}</td>
             <td>{{ feedback[1] }}</td>
+            <td>{{ feedback[3] }}</td>
             <td>{{ feedback[2] if feedback[2] else "Pending..." }}</td>
           </tr>
           {% endfor %}
