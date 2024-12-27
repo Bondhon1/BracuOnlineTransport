@@ -3,71 +3,164 @@
 {% block content %}
 <div class="container mt-5">
     <h2 class="text-center mb-4">Select Seat</h2>
-    <div id="seat_grid" class="seat-grid mt-4">
-        <p class="text-muted">Select an available seat below:</p>
+    <div class="d-flex justify-content-between">
+        <!-- Seat Grid -->
+        <div id="seat_grid" class="seat-grid"></div>
+
+        <!-- Color Indicator -->
+        <!-- Color Indicator -->
+        <div class="color-indicator ms-4 p-3 border rounded bg-light shadow">
+            <h5 class="text-center mb-3">Seat Legend</h5>
+            <div class="mb-2">
+                <span class="badge bg-success me-2">&nbsp;</span> Available
+            </div>
+            <div class="mb-2">
+                <span class="badge bg-danger me-2">&nbsp;</span> Booked
+            </div>
+            <div class="mb-2">
+                <span class="badge bg-primary me-2">&nbsp;</span> Male Reserved
+            </div>
+            <div class="mb-2">
+                <span class="badge" style="background-color: #e91e63;">&nbsp;</span> Female Reserved
+            </div>
+            <div class="mb-2">
+                <span class="badge bg-secondary me-2">&nbsp;</span> Reserved for Another Route
+            </div>
+            <div class="mb-2">
+                <span class="badge bg-warning me-2">&nbsp;</span> Selected
+            </div>
+        </div>
     </div>
-    <form id="otpForm" method="POST" action="{{ url_for('send_otp') }}">
+
+    <form id="otpForm" method="POST" action="{{ url_for('send_otp') }}" class="mt-4" text-center>
         <input type="hidden" name="route_id" value="{{ route_id }}">
         <input type="hidden" name="journey_type" value="{{ journey_type }}">
         <input type="hidden" name="stop_id" value="{{ stop_id }}">
         <input type="hidden" id="seat_number" name="seat_number">
-        <button type="submit" class="btn btn-primary mt-3" id="sendOtpBtn" disabled>Send OTP</button>
+        <div class="d-flex justify-content-center">
+            <button type="submit" class="btn btn-primary btn-lg mt-3" id="sendOtpBtn" disabled>Send OTP</button>
+        </div>
     </form>
 </div>
 
 <script>
-    const userGender = "{{ user_gender }}";
-    const reservedSeats = {{ reserved_seats | tojson | safe }};
     const seatNumbers = {{ seat_numbers | tojson | safe }};
     const maleSeats = {{ male_seats | tojson | safe }};
     const femaleSeats = {{ female_seats | tojson | safe }};
-
-    console.log("User Gender:", userGender);
-    console.log("Reserved Seats:", reservedSeats);
+    const reservedSeats = {{ reserved_seats | tojson | safe }};
+    const reservedOtherRoutes = {{ reserved_other_routes | tojson | safe }};
+    const userGender = "{{ user_gender }}";
 
     const seatGrid = document.getElementById('seat_grid');
     const seatNumberInput = document.getElementById('seat_number');
     const sendOtpBtn = document.getElementById('sendOtpBtn');
-    seatGrid.innerHTML = ''; // Clear grid
+    seatGrid.innerHTML = '';
 
-    seatNumbers.forEach(seat => {
-        const seatDiv = document.createElement('div');
-        seatDiv.className = 'seat';
+    const rows = Math.ceil(seatNumbers.length / 4); // Assume 4 columns for the bus layout
 
-        if (reservedSeats.includes(seat)) {
-            seatDiv.classList.add('reserved');
-            seatDiv.textContent = `${seat} (Already Booked)`;
-        } else if (maleSeats.includes(seat) && userGender !== 'Male') {
-            seatDiv.classList.add('reserved-male');
-            seatDiv.textContent = `${seat} (Male Reserved)`;
-        } else if (femaleSeats.includes(seat) && userGender !== 'Female') {
-            seatDiv.classList.add('reserved-female');
-            seatDiv.textContent = `${seat} (Female Reserved)`;
-        } else {
-            seatDiv.classList.add('available');
+    for (let i = 0; i < rows; i++) {
+        const rowDiv = document.createElement('div');
+        rowDiv.className = 'seat-row';
+
+        for (let j = 0; j < 4; j++) {
+            const seatIndex = i * 4 + j;
+            if (seatIndex >= seatNumbers.length) break;
+
+            const seat = seatNumbers[seatIndex];
+            const seatDiv = document.createElement('div');
+            seatDiv.className = 'seat';
             seatDiv.textContent = seat;
-            seatDiv.addEventListener('click', () => {
-                // Highlight selected seat
-                document.querySelectorAll('.seat.selected').forEach(s => s.classList.remove('selected'));
-                seatDiv.classList.add('selected');
-                seatNumberInput.value = seat;
 
-                // Enable OTP button
-                sendOtpBtn.disabled = false;
-            });
+            if (reservedOtherRoutes.includes(seat)) {
+                seatDiv.classList.add('reserved-other');
+            } else if (reservedSeats.includes(seat)) {
+                seatDiv.classList.add('reserved');
+            } else if (maleSeats.includes(seat) && userGender !== 'Male') {
+                seatDiv.classList.add('reserved-male');
+            } else if (femaleSeats.includes(seat) && userGender !== 'Female') {
+                seatDiv.classList.add('reserved-female');
+            } else {
+                seatDiv.classList.add('available');
+                seatDiv.addEventListener('click', () => {
+                    document.querySelectorAll('.seat.selected').forEach(s => s.classList.remove('selected'));
+                    seatDiv.classList.add('selected');
+                    seatNumberInput.value = seat;
+                    sendOtpBtn.disabled = false;
+                });
+            }
+
+            rowDiv.appendChild(seatDiv);
+
+            // Add aisle spacing after the second column
+            if (j === 1) {
+                const aisleDiv = document.createElement('div');
+                aisleDiv.className = 'aisle';
+                rowDiv.appendChild(aisleDiv);
+            }
         }
 
-        seatGrid.appendChild(seatDiv);
-    });
+        seatGrid.appendChild(rowDiv);
+    }
 </script>
 
 <style>
-    .seat-grid { display: grid; grid-template-columns: repeat(8, 1fr); gap: 10px; }
-    .seat { padding: 10px; text-align: center; cursor: pointer; border: 1px solid #ccc; border-radius: 5px; }
-    .seat.available { background-color: #d4edda; cursor: pointer; } /* Green */
-    .seat.reserved { background-color: #f8d7da; cursor: not-allowed; } /* Red */
-    .seat.reserved-male { background-color: #cce5ff; cursor: not-allowed; } /* Blue */
-    .seat.reserved-female { background-color: #f5c6cb; cursor: not-allowed; } /* Pink */
-    .seat.selected { background-color: #ffc107; } /* Yellow */
+    .seat-grid {
+        display: flex;
+        flex-direction: column;
+        gap: 10px;
+        align-items: center;
+        flex: 3; /* Allow seat grid to take most space */
+    }
+    .seat-row {
+        display: grid;
+        grid-template-columns: repeat(2, 1fr) 40px repeat(2, 1fr); /* Aisle between 2nd and 3rd columns */
+        gap: 10px;
+        align-items: center;
+    }
+    .seat {
+        width: 50px;
+        height: 50px;
+        line-height: 50px;
+        text-align: center;
+        font-weight: bold;
+        border: 1px solid #ccc;
+        border-radius: 5px;
+        cursor: pointer;
+    }
+    .seat.available {
+        background-color: #28a745; /* Green */
+    }
+    .seat.reserved {
+        background-color: #dc3545; /* Red */
+        cursor: not-allowed;
+    }
+    .seat.reserved-male {
+        background-color: #007bff; /* Blue */
+        cursor: not-allowed;
+    }
+    .seat.reserved-female {
+        background-color: #e83e8c; /* Pink */
+        cursor: not-allowed;
+    }
+    .seat.reserved-other {
+        background-color: #6c757d; /* Grey */
+        cursor: not-allowed;
+    }
+    .seat.selected {
+        background-color: #ffc107; /* Yellow */
+    }
+    .aisle {
+        background-color: transparent;
+    }
+    .color-indicator {
+        display: flex;
+        flex-direction: column;
+        gap: 10px;
+        flex: 1; /* Allow indicator section to take less space */
+        padding-left: 20px;
+    }
+    .bg-pink {
+    background-color: #e91e63; /* Pink color */
+    }
 </style>
 {% endblock %}

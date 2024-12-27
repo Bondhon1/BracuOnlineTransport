@@ -852,7 +852,6 @@ def select_seat():
     journey_date = date.today()
 
     if not route_id or not journey_type or not stop_id:
-        
         return redirect(url_for('select_route'))
 
     # Ensure route_id and stop_id are integers
@@ -865,27 +864,19 @@ def select_seat():
 
     cursor = mysql.connection.cursor()
 
-    # Check if user already has a booking for this journey type and date
-    cursor.execute("""
-        SELECT seat_number
-        FROM seat_bookings
-        WHERE user_id = %s AND journey_type = %s AND journey_date = CURDATE()
-    """, (user_id, journey_type))
-    existing_booking = cursor.fetchone()
-    print("Existing Booking Query Result:", existing_booking)
-
-    if existing_booking:
-        flash(f"You already have a {journey_type} booking for today. Please choose another type journey.", "danger")
-        return redirect(url_for('dashboard'))
-
     # Fetch user gender
     cursor.execute("SELECT gender FROM users WHERE id = %s", (user_id,))
-    result = cursor.fetchone()
-    if result:
-        user_gender = result[0]
-    else:
-        flash("Unable to fetch user details. Please contact admin.", "danger")
-        return redirect(url_for('select_route'))
+    user_gender = cursor.fetchone()
+    user_gender = user_gender[0] if user_gender else None
+
+    # Fetch seat capacity from bus_routes table
+    cursor.execute("SELECT capacity FROM bus_routes WHERE route_id = %s", (route_id,))
+    capacity = cursor.fetchone()
+    capacity = capacity[0] if capacity else 40  # Default to 40 if not found
+
+    # Generate seat numbers based on capacity
+    rows = capacity // 4  # Assuming 4 seats per row
+    all_seat_numbers = [f"{chr(65 + i)}{j+1}" for i in range(rows) for j in range(4)]
 
     # Fetch stop details
     cursor.execute("""
@@ -896,21 +887,23 @@ def select_seat():
     stop_details = cursor.fetchone()
 
     if not stop_details:
-        
+        flash("Invalid stop details. Please try again.", "danger")
         return redirect(url_for('select_route'))
 
-    seat_numbers = stop_details[0].split(',')
+    available_seats = stop_details[0].split(',') if stop_details[0] else []
     male_seats = stop_details[1].split(',') if stop_details[1] else []
     female_seats = stop_details[2].split(',') if stop_details[2] else []
 
-    # Fetch reserved seats
+    # Mark seats reserved for other routes (not in available_seats)
+    reserved_other_routes = list(set(all_seat_numbers) - set(available_seats))
+
+    # Fetch reserved seats for the chosen stop and journey type
     cursor.execute("""
         SELECT seat_number
         FROM seat_bookings
         WHERE route_id = %s AND stop_id = %s AND journey_date = CURDATE()
     """, (route_id, stop_id))
     reserved_seats = [row[0] for row in cursor.fetchall()]
-    print("Reserved Seats Query Result:", reserved_seats)
 
     cursor.close()
 
@@ -919,12 +912,14 @@ def select_seat():
         route_id=route_id,
         journey_type=journey_type,
         stop_id=stop_id,
-        seat_numbers=seat_numbers,
+        seat_numbers=all_seat_numbers,
         male_seats=male_seats,
         female_seats=female_seats,
         reserved_seats=reserved_seats,
+        reserved_other_routes=reserved_other_routes,
         user_gender=user_gender
     )
+
 
 
 @app.route('/confirm_booking', methods=['POST'])
