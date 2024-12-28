@@ -1,8 +1,8 @@
 {% extends 'app.html' %}
 
 {% block content %}
-<div class="container mt-5">
-    <h2 class="text-center mb-4">Admin Dashboard</h2>
+<div class="container mt-2">
+    <h2 class="text-center mb-2">Admin Dashboard</h2>
 
     <!-- Flash Message Section -->
     {% with messages = get_flashed_messages(category_filter=["success", "danger", "info"]) %}
@@ -17,12 +17,12 @@
     {% endwith %}
 
     <!-- Welcome Message -->
-    <div class="alert alert-info text-center">
-        <h4>Hello, {{ admin[0] }}! Welcome back.</h4>
+    <div id="welcomeMessage" class="alert alert-info text-center py-4">
+        <h4 class="m-0">Hello, {{ admin[0] }}! Welcome back.</h4>
     </div>
 
     <!-- Analytics Overview Section -->
-    <div class="row text-center my-4">
+    <div class="row text-center my-2">
         <div class="col-md-4">
             <div class="card shadow-sm">
                 <div class="card-body">
@@ -67,4 +67,44 @@
         </div>
     </div>
 </div>
+
+<script>
+    // Fade out the welcome message after 5 seconds
+    document.addEventListener('DOMContentLoaded', () => {
+        const welcomeMessage = document.getElementById('welcomeMessage');
+        if (welcomeMessage) {
+            setTimeout(() => {
+                welcomeMessage.style.transition = "opacity 1s ease, height 2s ease";
+                welcomeMessage.style.opacity = "0";
+                welcomeMessage.style.height = "0";
+                welcomeMessage.style.padding = "0";
+                welcomeMessage.style.margin = "0";
+            }, 3000); // Delay before fading out (5 seconds)
+        }
+    });
+</script>
+
+<style>
+    #welcomeMessage {
+        border: 1px solid #17a2b8;
+        background-color: #d1ecf1;
+        color: #0c5460;
+        transition: opacity 1s ease, height 1s ease;
+    }
+
+    /* Additional styling for cards and buttons */
+    .card {
+        border: none;
+        border-radius: 8px;
+    }
+
+    .btn {
+        font-size: 16px;
+        font-weight: 500;
+    }
+
+    .btn-group-vertical a {
+        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    }
+</style>
 {% endblock %}

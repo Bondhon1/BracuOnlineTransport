@@ -461,11 +461,20 @@ def add_feedback(route_name, journey_date):
 
     user_id = session['user_id']
 
+    cursor = mysql.connection.cursor()
+
+    # Fetch the bus number for the route
+    cursor.execute("SELECT bus_number FROM bus_routes WHERE route_name = %s", (route_name,))
+    bus_details = cursor.fetchone()
+    if not bus_details:
+        flash("Unable to fetch bus details for the selected route. Please contact admin.", "danger")
+        return redirect(url_for('dashboard'))
+
+    bus_number = bus_details[0]
+
     if request.method == 'POST':
         rating = request.form.get('rating')
         feedback = request.form.get('feedback')
-
-        cursor = mysql.connection.cursor()
 
         # Fetch username and email for the user
         cursor.execute("SELECT name, email FROM users WHERE id = %s", (user_id,))
@@ -476,20 +485,19 @@ def add_feedback(route_name, journey_date):
 
         username, email = user_details
 
-        # Insert feedback with username and email
+        # Insert feedback with username, email, and bus number
         cursor.execute("""
-            INSERT INTO feedback (user_id, name, email, route_name, journey_date, rating, feedback)
-            VALUES (%s, %s, %s, %s, %s, %s, %s)
-        """, (user_id, username, email, route_name, journey_date, rating, feedback))
+            INSERT INTO feedback (user_id, name, email, route_name, bus_number, journey_date, rating, feedback)
+            VALUES (%s, %s, %s, %s, %s, %s, %s, %s)
+        """, (user_id, username, email, route_name, bus_number, journey_date, rating, feedback))
         mysql.connection.commit()
         cursor.close()
 
         flash("Feedback submitted successfully!", "success")
         return redirect(url_for('dashboard'))
 
-    return render_template('add_feedback.html', route_name=route_name, journey_date=journey_date)
-
-
+    cursor.close()
+    return render_template('add_feedback.html', route_name=route_name, journey_date=journey_date, bus_number=bus_number)
 
 
 @app.route('/staff_dashboard')
@@ -499,45 +507,50 @@ def staff_dashboard():
 
     staff_id = session['staff_id']
 
-    #staff details
+    # Fetch staff details
     cursor = mysql.connection.cursor()
     cursor.execute("SELECT * FROM staffs WHERE id=%s", (staff_id,))
     staff = cursor.fetchone()
 
-    #recent vehicle requests and admin replies
+    # Fetch recent vehicle requests
     cursor.execute("""
-        SELECT journey_date, pickup_location, destination, capacity, reply, status 
-        FROM vehicle_requests 
-        WHERE staff_id=%s 
-        ORDER BY journey_date DESC 
+        SELECT journey_date, pickup_location, destination, capacity, reply, status
+        FROM vehicle_requests
+        WHERE staff_id=%s
+        ORDER BY journey_date DESC
         LIMIT 5
     """, (staff_id,))
     vehicle_requests = cursor.fetchall()
 
     # Count unread replies
     cursor.execute("""
-        SELECT COUNT(*) 
-        FROM vehicle_requests 
+        SELECT COUNT(*)
+        FROM vehicle_requests
         WHERE staff_id=%s AND reply IS NOT NULL AND viewed=0
     """, (staff_id,))
     new_replies_count = cursor.fetchone()[0]
 
     # Mark replies as viewed
     cursor.execute("""
-        UPDATE vehicle_requests 
-        SET viewed=1 
+        UPDATE vehicle_requests
+        SET viewed=1
         WHERE staff_id=%s AND reply IS NOT NULL
     """, (staff_id,))
     mysql.connection.commit()
 
     cursor.close()
 
+    # Get and remove the vehicle request success message from the session
+    vehicle_request_message = session.pop('vehicle_request_message', None)
+
     return render_template(
         'staff_dashboard.html',
         staff=staff,
         vehicle_requests=vehicle_requests,
-        new_replies_count=new_replies_count
+        new_replies_count=new_replies_count,
+        vehicle_request_message=vehicle_request_message
     )
+
 
 
 @app.route('/admin_dashboard')
@@ -922,47 +935,6 @@ def select_seat():
 
 
 
-@app.route('/confirm_booking', methods=['POST'])
-def confirm_booking():
-    if 'user_id' not in session:
-        return redirect(url_for('login'))
-
-    user_id = session['user_id']
-    route_id = request.form.get('route_id')
-    journey_type = request.form.get('journey_type')
-    stop_id = request.form.get('stop_id')
-    seat_number = request.form.get('seat_number')
-    journey_date = date.today()
-
-    if not route_id or not journey_type or not stop_id or not seat_number:
-        
-        return redirect(url_for('select_route'))
-
-    cursor = mysql.connection.cursor()
-
-    # Check if user already has a booking for this journey type and date
-    cursor.execute("""
-        SELECT seat_number
-        FROM seat_bookings
-        WHERE user_id = %s AND journey_type = %s AND journey_date = %s
-    """, (user_id, journey_type, journey_date))
-    existing_booking = cursor.fetchone()
-
-    if existing_booking:
-        flash(f"You already have a {journey_type} booking for today. Please choose a dropoff journey.", "danger")
-        return redirect(url_for('select_route'))
-
-    # Insert the booking
-    cursor.execute("""
-        INSERT INTO seat_bookings (user_id, route_id, stop_id, seat_number, journey_type, journey_date)
-        VALUES (%s, %s, %s, %s, %s, %s)
-    """, (user_id, route_id, stop_id, seat_number, journey_type, journey_date))
-    mysql.connection.commit()
-    cursor.close()
-
-    flash("Booking confirmed successfully!", "success")
-    return redirect(url_for('dashboard'))
-
 @app.route('/send_otp', methods=['POST'])
 def send_otp():
     if 'user_id' not in session:
@@ -1101,10 +1073,12 @@ def request_vehicle():
         mysql.connection.commit()
         cursor.close()
 
-        flash("Vehicle request submitted successfully!", "success")
+        # Store success message in the session
+        session['vehicle_request_message'] = "Vehicle request submitted successfully!"
         return redirect(url_for('staff_dashboard'))
 
     return render_template('request_vehicle.html', form=form)
+
 
 @app.route('/view_requests', methods=['GET', 'POST'])
 def view_requests():
@@ -1220,7 +1194,7 @@ def get_feedback_from_db():
     cursor = mysql.connection.cursor()
     cursor.execute("""
         SELECT name, email, bus_number, feedback, rating, journey_date, reply, id 
-        FROM feedback
+        FROM feedback ORDER BY journey_date DESC
     """)
     feedbacks = cursor.fetchall()
     cursor.close()
@@ -1256,8 +1230,11 @@ def reply_feedback(feedback_id):
     mysql.connection.commit()
     cursor.close()
 
+    # Flash message for reply success
     flash("Reply sent successfully!", "success")
+    # Redirect to view_feedback
     return redirect(url_for('view_feedback'))
+
 
 def calculate_average_rating(feedbacks):
     if not feedbacks:

@@ -11,6 +11,12 @@
     <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
   </div>
   {% endif %}
+  {% if vehicle_request_message %}
+<div class="alert alert-success alert-dismissible fade show text-center" role="alert">
+    {{ vehicle_request_message }}
+    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+</div>
+{% endif %}
 
   <!-- Header -->
   <h2 class="mb-4">Welcome to the Staff Dashboard</h2>

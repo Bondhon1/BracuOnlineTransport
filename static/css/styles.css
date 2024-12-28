@@ -3,14 +3,20 @@
 /* General styles for body */
 body {
     font-family: 'Arial', sans-serif;
-    background-color: #c3cacd;
+    background-image: url('/static/images/intersection.webp');
+    background-repeat: repeat; /* Stops the image from repeating */
+    background-size: 200px 200px; /* Makes the image cover the screen proportionally */
+    background-position: center; /* Centers the image on the screen */
+    color: #333;
     margin: 0;
     padding: 0;
 }
 
+
 /* Navbar customization */
 .navbar {
     margin-bottom: 20px;
+    
 }
 
 .navbar-brand {

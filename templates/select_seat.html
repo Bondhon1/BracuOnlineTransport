@@ -8,7 +8,6 @@
         <div id="seat_grid" class="seat-grid"></div>
 
         <!-- Color Indicator -->
-        <!-- Color Indicator -->
         <div class="color-indicator ms-4 p-3 border rounded bg-light shadow">
             <h5 class="text-center mb-3">Seat Legend</h5>
             <div class="mb-2">
@@ -32,7 +31,7 @@
         </div>
     </div>
 
-    <form id="otpForm" method="POST" action="{{ url_for('send_otp') }}" class="mt-4" text-center>
+    <form id="otpForm" method="POST" action="{{ url_for('send_otp') }}" class="mt-4 text-center">
         <input type="hidden" name="route_id" value="{{ route_id }}">
         <input type="hidden" name="journey_type" value="{{ journey_type }}">
         <input type="hidden" name="stop_id" value="{{ stop_id }}">
@@ -82,10 +81,16 @@
             } else {
                 seatDiv.classList.add('available');
                 seatDiv.addEventListener('click', () => {
-                    document.querySelectorAll('.seat.selected').forEach(s => s.classList.remove('selected'));
-                    seatDiv.classList.add('selected');
-                    seatNumberInput.value = seat;
-                    sendOtpBtn.disabled = false;
+                    if (seatDiv.classList.contains('selected')) {
+                        seatDiv.classList.remove('selected');
+                        seatNumberInput.value = '';
+                        sendOtpBtn.disabled = true;
+                    } else {
+                        document.querySelectorAll('.seat.selected').forEach(s => s.classList.remove('selected'));
+                        seatDiv.classList.add('selected');
+                        seatNumberInput.value = seat;
+                        sendOtpBtn.disabled = false;
+                    }
                 });
             }
 
@@ -109,7 +114,6 @@
         flex-direction: column;
         gap: 10px;
         align-items: center;
-        flex: 3; /* Allow seat grid to take most space */
     }
     .seat-row {
         display: grid;
@@ -156,11 +160,7 @@
         display: flex;
         flex-direction: column;
         gap: 10px;
-        flex: 1; /* Allow indicator section to take less space */
         padding-left: 20px;
-    }
-    .bg-pink {
-    background-color: #e91e63; /* Pink color */
     }
 </style>
 {% endblock %}

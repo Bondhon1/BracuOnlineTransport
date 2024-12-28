@@ -13,6 +13,8 @@
   
     <!-- Custom Styles -->
     <link rel="stylesheet" href="{{ url_for('static', filename='css/styles.css') }}">
+
+    
   </head>
 <body>
 
@@ -33,15 +35,29 @@
 
   <div class="collapse navbar-collapse" id="navbarNav">
     <ul class="navbar-nav ms-auto">
+      {% if 'user_id' in session %}
+      <li class="nav-item">
+        
+        <a class="nav-link" href="{{ url_for('select_route') }}">Book Seat</a>
+      </li>
+      {% elif 'staff_id' in session %}
+      <li class="nav-item">
+        
+        <a class="nav-link" href="{{ url_for('request_vehicle') }}">Request Vehiclle</a>
+      </li>
+      
+      {% endif %}
 
       <!-- Dashboard Links Based on User Type -->
       {% if 'user_id' in session %}
       <li class="nav-item">
         <a class="nav-link" href="{{ url_for('dashboard') }}">User Dashboard</a>
+        
       </li>
       {% elif 'staff_id' in session %}
       <li class="nav-item">
         <a class="nav-link" href="{{ url_for('staff_dashboard') }}">Staff Dashboard</a>
+        
       </li>
       {% elif 'admin_id' in session %}
       <li class="nav-item">
