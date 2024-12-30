@@ -1,15 +1,33 @@
 /* styles.css */
 
 /* General styles for body */
+/* Ensure the body is a flex container */
 body {
-    font-family: 'Arial', sans-serif;
-    background-image: url('/static/images/intersection.webp');
-    background-repeat: repeat; /* Stops the image from repeating */
-    background-size: 200px 200px; /* Makes the image cover the screen proportionally */
-    background-position: center; /* Centers the image on the screen */
-    color: #333;
+    display: flex;
+    flex-direction: column;
+    min-height: 100vh;
     margin: 0;
     padding: 0;
+    font-family: 'Arial', sans-serif;
+    background-image: url('/static/images/intersection.webp');
+    background-repeat: repeat;
+    background-size: 200px 200px;
+    background-position: center;
+    color: #333;
+}
+
+/* Allow the main content to grow and push the footer down */
+main {
+    flex-grow: 1;
+    padding: 20px;
+}
+
+/* Footer styles remain at the bottom */
+footer {
+    background-color: #f8f9fa;
+    text-align: center;
+    padding: 10px;
+    box-shadow: 0 -1px 5px rgba(0, 0, 0, 0.1);
 }
 
 
@@ -19,10 +37,33 @@ body {
     
 }
 
-.navbar-brand {
-    font-weight: bold;
-    font-size: 1.5rem;
+/* Default styles for PC */
+.navbar-brand img {
+    width: 30px;
+    height: 30px;
 }
+
+.navbar-brand {
+    font-size: 1.5rem;
+    font-weight: bold;
+}
+
+/* Adjustments for mobile devices (screens smaller than 768px) */
+@media (max-width: 768px) {
+    .navbar-brand img {
+        width: 20px; /* Smaller logo */
+        height: 20px;
+    }
+
+    .navbar-brand {
+        font-size: 1.2rem; /* Smaller title */
+    }
+
+    .navbar-nav .nav-item .nav-link {
+        font-size: 0.9rem; /* Optional: Slightly smaller navigation links */
+    }
+}
+
 
 .navbar-nav .nav-item .nav-link {
     font-size: 1rem;
@@ -175,11 +216,10 @@ body {
 
 /* Call to Action Section */
 .bg-light {
-    background: #f8f9fa !important;
+    background: linear-gradient(135deg, #f3f3f3, #dbdbdd) !important; /* Light color gradient */
     padding: 0.75rem 1.5rem;
     border-radius: 10px;
 }
-
 .btn {
     padding: 0.5rem 1rem;
     font-size: 1rem;

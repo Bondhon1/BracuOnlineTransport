@@ -3,33 +3,56 @@
 {% block content %}
 <div class="container mt-5">
     <h2 class="text-center mb-4">Select Seat</h2>
-    <div class="d-flex justify-content-between">
-        <!-- Seat Grid -->
-        <div id="seat_grid" class="seat-grid"></div>
+    <div class="row">
+        <!-- User and Journey Info -->
+        <div id="user-info" class="col-lg-3 mb-4">
+            <div class="card shadow-sm">
+                <div class="card-header bg-primary text-white">
+                    <h5 class="mb-0">User Info</h5>
+                </div>
+                <div class="card-body">
+                    <p><strong>Name:</strong> {{ user_info.name }}</p>
+                    <p><strong>Email:</strong> {{ user_info.email }}</p>
+                    <p><strong>Student ID:</strong> {{ user_info.student_id }}</p>
+                    <p><strong>Department:</strong> {{ user_info.department }}</p>
+                    <p><strong>Gender:</strong> {{ user_info.gender }}</p>
+                    
+                </div>
+            </div>
+        </div>
+        
+
+        <!-- Seat Selection -->
+        <div id="seat-grid-container" class="col-lg-6">
+            <div id="seat_grid" class="seat-grid"></div>
+        </div>
 
         <!-- Color Indicator -->
-        <div class="color-indicator ms-4 p-3 border rounded bg-light shadow">
-            <h5 class="text-center mb-3">Seat Legend</h5>
-            <div class="mb-2">
-                <span class="badge bg-success me-2">&nbsp;</span> Available
-            </div>
-            <div class="mb-2">
-                <span class="badge bg-danger me-2">&nbsp;</span> Booked
-            </div>
-            <div class="mb-2">
-                <span class="badge bg-primary me-2">&nbsp;</span> Male Reserved
-            </div>
-            <div class="mb-2">
-                <span class="badge" style="background-color: #e91e63;">&nbsp;</span> Female Reserved
-            </div>
-            <div class="mb-2">
-                <span class="badge bg-secondary me-2">&nbsp;</span> Reserved for Another Route
-            </div>
-            <div class="mb-2">
-                <span class="badge bg-warning me-2">&nbsp;</span> Selected
+        <div id="color-indicator" class="col-lg-3">
+            <div class="color-indicator ms-lg-4 p-3 border rounded bg-light shadow">
+                <h5 class="text-center mb-3">Seat Legend</h5>
+                <div class="mb-2">
+                    <span class="badge bg-success me-2">&nbsp;</span> Available
+                </div>
+                <div class="mb-2">
+                    <span class="badge bg-danger me-2">&nbsp;</span> Booked
+                </div>
+                <div class="mb-2">
+                    <span class="badge bg-primary me-2">&nbsp;</span> Male Reserved
+                </div>
+                <div class="mb-2">
+                    <span class="badge" style="background-color: #e91e63;">&nbsp;</span> Female Reserved
+                </div>
+                <div class="mb-2">
+                    <span class="badge bg-secondary me-2">&nbsp;</span> Reserved for Another Route
+                </div>
+                <div class="mb-2">
+                    <span class="badge bg-warning me-2">&nbsp;</span> Selected
+                </div>
             </div>
         </div>
     </div>
+
 
     <form id="otpForm" method="POST" action="{{ url_for('send_otp') }}" class="mt-4 text-center">
         <input type="hidden" name="route_id" value="{{ route_id }}">

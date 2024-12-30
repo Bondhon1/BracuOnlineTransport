@@ -877,10 +877,24 @@ def select_seat():
 
     cursor = mysql.connection.cursor()
 
-    # Fetch user gender
-    cursor.execute("SELECT gender FROM users WHERE id = %s", (user_id,))
-    user_gender = cursor.fetchone()
-    user_gender = user_gender[0] if user_gender else None
+    # Fetch user details
+    cursor.execute("""
+        SELECT name, email, student_id, department, gender
+        FROM users
+        WHERE id = %s
+    """, (user_id,))
+    user_details = cursor.fetchone()
+    if not user_details:
+        flash("Unable to fetch user details. Please contact admin.", "danger")
+        return redirect(url_for('dashboard'))
+
+    user_info = {
+        'name': user_details[0],
+        'email': user_details[1],
+        'student_id': user_details[2],
+        'department': user_details[3],
+        'gender': user_details[4]
+    }
 
     # Fetch seat capacity from bus_routes table
     cursor.execute("SELECT capacity FROM bus_routes WHERE route_id = %s", (route_id,))
@@ -930,7 +944,8 @@ def select_seat():
         female_seats=female_seats,
         reserved_seats=reserved_seats,
         reserved_other_routes=reserved_other_routes,
-        user_gender=user_gender
+        user_info=user_info,
+        user_gender = user_info['gender']
     )
 
 
