@@ -974,7 +974,8 @@ def send_otp():
         FROM seat_bookings
         WHERE route_id = %s AND stop_id = %s AND seat_number = %s AND journey_date = %s
     """, (route_id, stop_id, seat_number, journey_date))
-    if cursor.fetchone():
+    already_researved = cursor.fetchone()
+    if already_researved!=None:
         flash("The selected seat has already been booked. Please choose another seat.", "danger")
         return redirect(url_for('select_seat', route_id=route_id, journey_type=journey_type, stop_id=stop_id))
 
@@ -1040,8 +1041,9 @@ def confirm_otp():
             SELECT seat_number
             FROM seat_bookings
             WHERE route_id = %s AND stop_id = %s AND seat_number = %s AND journey_date = %s
-        """, (booking_details['route_id'], booking_details['stop_id'], booking_details['seat_number'], booking_details['journey_date']))
-        if cursor.fetchone():
+        """, (booking_details['route_id'], booking_details['stop_id'], booking_details['seat_number'], date.today()))
+        already_reserved = cursor.fetchone()
+        if already_reserved!=None:
             flash("The selected seat has already been booked by another user. Please choose a different seat.", "danger")
             return redirect(url_for('select_seat', route_id=booking_details['route_id'], 
                                     journey_type=booking_details['journey_type'], stop_id=booking_details['stop_id']))
