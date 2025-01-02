@@ -285,3 +285,32 @@ footer {
     gap: 10px;
     padding-left: 20px;
 }
+
+.card {
+    border-radius: 10px;
+    overflow: hidden;
+}
+
+.card-header {
+    font-size: 1.2rem;
+    font-weight: bold;
+    padding: 1rem;
+}
+
+.table {
+    margin: 0;
+    border-collapse: separate;
+    border-spacing: 0;
+}
+
+.table th, .table td {
+    padding: 0.75rem;
+    vertical-align: middle;
+    text-align: left;
+}
+
+.thead-dark th {
+    background-color: #343a40;
+    color: white;
+    text-align: left;
+}

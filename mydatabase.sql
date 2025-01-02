@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Host: 127.0.0.1
--- Generation Time: Dec 25, 2024 at 04:31 PM
+-- Generation Time: Dec 31, 2024 at 05:35 PM
 -- Server version: 10.4.32-MariaDB
 -- PHP Version: 8.0.30
 
@@ -81,20 +81,26 @@ CREATE TABLE `feedback` (
   `name` varchar(50) NOT NULL,
   `email` varchar(50) NOT NULL,
   `reply` varchar(200) DEFAULT NULL,
-  `viewed` tinyint(1) DEFAULT 0
+  `viewed` tinyint(1) DEFAULT 0,
+  `route_name` varchar(50) NOT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 --
 -- Dumping data for table `feedback`
 --
 
-INSERT INTO `feedback` (`id`, `user_id`, `bus_number`, `feedback`, `rating`, `journey_date`, `created_at`, `name`, `email`, `reply`, `viewed`) VALUES
-(1, 3, '1', 'yjtasfcuhcu sdiuvh sdiuch Worst', 1, '2024-12-17', '2024-12-18 03:49:13', 'Test2', 'test@gmail.com', '?', 1),
-(2, 3, '02', 'iusd jhsdsh iusdh kids', 5, '2024-12-09', '2024-12-18 04:12:17', 'Test2', 'test@gmail.com', '?', 1),
-(3, 3, '3', 'good dggfchcfgh', 2, '2024-12-04', '2024-12-18 04:32:47', 'Test2', 'test@gmail.com', '!', 1),
-(4, 3, '01', 'dth fgbgfgb dfb xf dfbdg', 3, '2024-12-17', '2024-12-18 14:17:44', 'Test2', 'test@gmail.com', '.....', 1),
-(5, 3, '2', 'zfd fdv dffv dfvvdfv', 5, '2024-12-18', '2024-12-19 13:02:18', 'Test2', 'test@gmail.com', 'ok', 1),
-(6, 3, '02', 'yg jhg hgf ygx jhgx', 4, '2024-12-20', '2024-12-21 05:47:18', 'Test2', 'test@gmail.com', '1', 1);
+INSERT INTO `feedback` (`id`, `user_id`, `bus_number`, `feedback`, `rating`, `journey_date`, `created_at`, `name`, `email`, `reply`, `viewed`, `route_name`) VALUES
+(1, 3, '1', 'yjtasfcuhcu sdiuvh sdiuch Worst', 1, '2024-12-17', '2024-12-18 03:49:13', 'Test2', 'test@gmail.com', '?', 1, ''),
+(2, 3, '02', 'iusd jhsdsh iusdh kids', 5, '2024-12-09', '2024-12-18 04:12:17', 'Test2', 'test@gmail.com', '?', 1, ''),
+(3, 3, '3', 'good dggfchcfgh', 2, '2024-12-04', '2024-12-18 04:32:47', 'Test2', 'test@gmail.com', '!', 1, ''),
+(4, 3, '01', 'dth fgbgfgb dfb xf dfbdg', 3, '2024-12-17', '2024-12-18 14:17:44', 'Test2', 'test@gmail.com', '.....', 1, ''),
+(5, 3, '2', 'zfd fdv dffv dfvvdfv', 5, '2024-12-18', '2024-12-19 13:02:18', 'Test2', 'test@gmail.com', 'ok', 1, ''),
+(6, 3, '02', 'yg jhg hgf ygx jhgx', 4, '2024-12-20', '2024-12-21 05:47:18', 'Test2', 'test@gmail.com', '1', 1, ''),
+(8, 11, '01', 'fv ffb dv sdf sdc', 2, '2024-12-25', '2024-12-26 13:51:06', 'Bondhon2', 'bondhon0101@gmail.com', 'ok', 1, 'Abdullahpur'),
+(9, 11, '02', 'ghgc ttu ygj gj', 5, '2024-12-25', '2024-12-27 11:39:32', 'Bondhon2', 'bondhon0101@gmail.com', 'ok', 1, 'Abdullahpur'),
+(10, 11, '01', 'sdcf vfds ddff', 5, '2024-12-25', '2024-12-27 11:46:57', 'Bondhon2', 'bondhon0101@gmail.com', 'ok', 1, 'Abdullahpur'),
+(11, 11, '01', 'ffbb gg fbh fbfg f', 5, '2024-12-26', '2024-12-27 11:59:52', 'Bondhon2', 'bondhon0101@gmail.com', 'pp', 1, 'Abdullahpur'),
+(12, 11, '02', 'hh fdb fdv dvsd dv', 4, '2024-12-27', '2024-12-28 16:34:50', 'Bondhon2', 'bondhon0101@gmail.com', 'ok', 1, 'Mirpur-A');
 
 -- --------------------------------------------------------
 
@@ -140,7 +146,10 @@ INSERT INTO `route_stops` (`stop_id`, `route_id`, `stop_name`, `pickup_time`, `d
 (24, 8, 'Pallabi Thana (Shagufta mour)', '06:43:00', '07:20:00', 60.00, 'pickup', 'I1,I2,I3,I4', 'I1,I2', 'I3,I4'),
 (25, 8, 'Kalshi Bus Stand', '06:45:00', '07:20:00', 50.00, 'pickup', 'J1,J3', 'J1', 'J3'),
 (26, 8, 'ECB Chattar', '06:48:00', '07:20:00', 50.00, 'pickup', 'J2,J4', 'J2', 'J4'),
-(27, 1, 'Abdullahpur', NULL, '14:05:00', 90.00, 'dropoff', 'A1,A2,B1,B2', 'A1,A2', 'B1,B2');
+(27, 1, 'Abdullahpur', NULL, '14:05:00', 90.00, 'dropoff', 'A1,A2,B1,B2', 'A1,A2', 'B1,B2'),
+(28, 8, 'ABC', NULL, '07:00:00', 90.00, 'dropoff', 'D1,D2,D3,D4,E1,E2', 'D1,D2,D3', 'D4,E1,E2'),
+(29, 8, 'DEF', NULL, NULL, 80.00, 'pickup', 'A1,A2,A3,A4', 'A1,A2', 'A3,A4'),
+(30, 8, 'DEF', NULL, NULL, 70.00, 'dropoff', 'B1,B2,B3,B4', 'B1,B2', 'B3,B4');
 
 -- --------------------------------------------------------
 
@@ -163,7 +172,11 @@ CREATE TABLE `seat_bookings` (
 --
 
 INSERT INTO `seat_bookings` (`booking_id`, `user_id`, `route_id`, `stop_id`, `seat_number`, `journey_date`, `journey_type`) VALUES
-(41, 11, 1, 6, 'A1', '2024-12-25', 'pickup');
+(41, 11, 1, 6, 'A1', '2024-12-25', 'pickup'),
+(55, 11, 1, 9, 'D1', '2024-12-26', 'pickup'),
+(59, 11, 8, 28, 'D1', '2024-12-27', 'dropoff'),
+(73, 12, 1, 8, 'C1', '2024-12-30', 'pickup'),
+(74, 12, 1, 11, 'F1', '2024-12-31', 'pickup');
 
 -- --------------------------------------------------------
 
@@ -208,6 +221,50 @@ CREATE TABLE `staffs` (
 
 INSERT INTO `staffs` (`id`, `initial`, `email`, `password`, `full_name`, `pin`, `department`, `address`, `mobile_number`, `blood_group`, `registration_date`, `profile_image`, `verified`) VALUES
 (1, 'ZAZ', 'bondhonfiles@gmail.com', '$2b$12$z0mfv8qGsrZ2CnsMPaxSweqN6z2/SiGFBzzUDKj5Zy7x6IUMslwMS', 'Ihzaz Ahmed', 12345, 'CSE', 'Dhaka', 1711111111, 'O+', '2024-12-20 09:16:17', '20220211_172426.jpg', 0);
+
+-- --------------------------------------------------------
+
+--
+-- Table structure for table `trip_times`
+--
+
+CREATE TABLE `trip_times` (
+  `trip_id` int(11) NOT NULL,
+  `stop_id` int(11) NOT NULL,
+  `trip_time` time NOT NULL,
+  `shift` int(11) NOT NULL DEFAULT 1
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+--
+-- Dumping data for table `trip_times`
+--
+
+INSERT INTO `trip_times` (`trip_id`, `stop_id`, `trip_time`, `shift`) VALUES
+(1, 29, '06:40:00', 1),
+(2, 30, '06:45:00', 1),
+(3, 30, '12:45:00', 1),
+(4, 6, '06:40:00', 1),
+(5, 7, '06:43:00', 1),
+(6, 8, '06:46:00', 1),
+(7, 9, '06:49:00', 1),
+(8, 10, '06:51:00', 1),
+(9, 11, '06:52:00', 1),
+(10, 12, '06:56:00', 1),
+(11, 13, '06:59:00', 1),
+(12, 14, '07:00:00', 1),
+(13, 16, '06:20:00', 1),
+(14, 17, '06:24:00', 1),
+(15, 18, '06:26:00', 1),
+(16, 19, '06:28:00', 1),
+(17, 20, '06:31:00', 1),
+(18, 21, '06:34:00', 1),
+(19, 22, '06:36:00', 1),
+(20, 23, '06:40:00', 1),
+(21, 24, '06:43:00', 1),
+(22, 25, '06:45:00', 1),
+(23, 26, '06:48:00', 1),
+(35, 27, '14:05:00', 2),
+(36, 28, '07:00:00', 1);
 
 -- --------------------------------------------------------
 
@@ -269,7 +326,9 @@ INSERT INTO `vehicle_requests` (`id`, `staff_id`, `journey_date`, `pickup_locati
 (9, 1, '2025-01-01', 'Badda', 'Mohakhali', 5, 'Approved', 'ok', '2024-12-20 13:34:50', 1, NULL),
 (10, 1, '2025-12-31', 'Dhaka', 'Rajshahi', 1, 'Approved', 'ok', '2024-12-20 17:48:45', 1, NULL),
 (11, 1, '2022-12-21', 'Mars', 'Earth', 12, 'Approved', 'ok.....', '2024-12-21 05:49:58', 1, NULL),
-(12, 1, '2024-12-22', 'Dg', 'As', 12, 'Rejected', 'rejected', '2024-12-21 14:14:40', 1, '12:12:00');
+(12, 1, '2024-12-22', 'Dg', 'As', 12, 'Rejected', 'rejected', '2024-12-21 14:14:40', 1, '12:12:00'),
+(13, 1, '2024-12-31', 'BRACU', 'Badda', 4, 'Approved', 'Ok', '2024-12-28 14:33:33', 1, '07:00:00'),
+(14, 1, '2024-12-31', 'BRACU', 'Mars', 2, 'Rejected', 'rejected', '2024-12-28 14:39:58', 1, '08:30:00');
 
 --
 -- Indexes for dumped tables
@@ -322,6 +381,13 @@ ALTER TABLE `staffs`
   ADD PRIMARY KEY (`id`);
 
 --
+-- Indexes for table `trip_times`
+--
+ALTER TABLE `trip_times`
+  ADD PRIMARY KEY (`trip_id`),
+  ADD KEY `stop_id` (`stop_id`);
+
+--
 -- Indexes for table `users`
 --
 ALTER TABLE `users`
@@ -354,25 +420,31 @@ ALTER TABLE `bus_routes`
 -- AUTO_INCREMENT for table `feedback`
 --
 ALTER TABLE `feedback`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=7;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=13;
 
 --
 -- AUTO_INCREMENT for table `route_stops`
 --
 ALTER TABLE `route_stops`
-  MODIFY `stop_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=28;
+  MODIFY `stop_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=31;
 
 --
 -- AUTO_INCREMENT for table `seat_bookings`
 --
 ALTER TABLE `seat_bookings`
-  MODIFY `booking_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=47;
+  MODIFY `booking_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=75;
 
 --
 -- AUTO_INCREMENT for table `staffs`
 --
 ALTER TABLE `staffs`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=6;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=7;
+
+--
+-- AUTO_INCREMENT for table `trip_times`
+--
+ALTER TABLE `trip_times`
+  MODIFY `trip_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=37;
 
 --
 -- AUTO_INCREMENT for table `users`
@@ -384,7 +456,7 @@ ALTER TABLE `users`
 -- AUTO_INCREMENT for table `vehicle_requests`
 --
 ALTER TABLE `vehicle_requests`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=13;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=15;
 
 --
 -- Constraints for dumped tables
@@ -407,6 +479,12 @@ ALTER TABLE `route_stops`
 --
 ALTER TABLE `seat_status`
   ADD CONSTRAINT `seat_status_ibfk_1` FOREIGN KEY (`route_id`) REFERENCES `bus_routes` (`route_id`);
+
+--
+-- Constraints for table `trip_times`
+--
+ALTER TABLE `trip_times`
+  ADD CONSTRAINT `trip_times_ibfk_1` FOREIGN KEY (`stop_id`) REFERENCES `route_stops` (`stop_id`) ON DELETE CASCADE;
 
 --
 -- Constraints for table `vehicle_requests`
