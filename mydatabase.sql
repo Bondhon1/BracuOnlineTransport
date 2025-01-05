@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Host: 127.0.0.1
--- Generation Time: Dec 31, 2024 at 05:35 PM
+-- Generation Time: Jan 05, 2025 at 01:16 PM
 -- Server version: 10.4.32-MariaDB
 -- PHP Version: 8.0.30
 
@@ -44,6 +44,26 @@ INSERT INTO `admins` (`admin_id`, `name`, `email`, `password`) VALUES
 -- --------------------------------------------------------
 
 --
+-- Table structure for table `bus_offdays`
+--
+
+CREATE TABLE `bus_offdays` (
+  `id` int(11) NOT NULL,
+  `off_date` date NOT NULL,
+  `description` varchar(255) DEFAULT NULL,
+  `created_at` timestamp NOT NULL DEFAULT current_timestamp()
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+--
+-- Dumping data for table `bus_offdays`
+--
+
+INSERT INTO `bus_offdays` (`id`, `off_date`, `description`, `created_at`) VALUES
+(2, '2025-01-05', 'service off', '2025-01-04 10:30:51');
+
+-- --------------------------------------------------------
+
+--
 -- Table structure for table `bus_routes`
 --
 
@@ -62,7 +82,8 @@ CREATE TABLE `bus_routes` (
 
 INSERT INTO `bus_routes` (`route_id`, `route_name`, `bus_number`, `driver_name`, `capacity`, `created_at`) VALUES
 (1, 'Abdullahpur', '01', 'Rahim', 40, '2024-12-17 03:20:34'),
-(8, 'Mirpur-A', '02', 'Karim', 40, '2024-12-23 13:45:21');
+(8, 'Mirpur-A', '02', 'Karim', 40, '2024-12-23 13:45:21'),
+(9, 'Mirpur-B', '03', 'Kashem', 40, '2025-01-02 15:17:25');
 
 -- --------------------------------------------------------
 
@@ -112,8 +133,6 @@ CREATE TABLE `route_stops` (
   `stop_id` int(11) NOT NULL,
   `route_id` int(11) NOT NULL,
   `stop_name` varchar(100) NOT NULL,
-  `pickup_time` time DEFAULT NULL,
-  `dropoff_time` time DEFAULT NULL,
   `fare` decimal(10,2) NOT NULL,
   `stop_type` enum('pickup','dropoff') NOT NULL,
   `seat_numbers` text NOT NULL,
@@ -125,31 +144,32 @@ CREATE TABLE `route_stops` (
 -- Dumping data for table `route_stops`
 --
 
-INSERT INTO `route_stops` (`stop_id`, `route_id`, `stop_name`, `pickup_time`, `dropoff_time`, `fare`, `stop_type`, `seat_numbers`, `male_seats`, `female_seats`) VALUES
-(6, 1, 'Abdullahpur', '06:40:00', '07:30:00', 90.00, 'pickup', 'A1,A2,B1,B2', 'A1,A2', 'B1,B2'),
-(7, 1, 'House Building (Labaid Diagnostic)', '06:43:00', '07:30:00', 90.00, 'pickup', 'A3,A4,B3,B4', 'A3,A4', 'B3,B4'),
-(8, 1, 'Azampur (in front of Uttara East Police Station)', '06:46:00', '07:30:00', 90.00, 'pickup', 'C1,C2,C3,C4', 'C1,C2', 'C3,C4'),
-(9, 1, 'Jasimuddin (Popular Diagnostic Centre)', '06:49:00', '07:30:00', 90.00, 'pickup', 'D1,D2,D3,D4', 'D1,D2', 'D3,D4'),
-(10, 1, 'Airport (in front of police box)', '06:51:00', '07:30:00', 90.00, 'pickup', 'E1,E2,E3,E4', 'E1,E2', 'E3,E4'),
-(11, 1, 'Kawla (near foot over-bridge)', '06:52:00', '07:30:00', 90.00, 'pickup', 'F1,F2,F3,F4', 'F1,F2', 'F3,F4'),
-(12, 1, 'Khilkhet (first foot over-bridge coming from Uttara)', '06:56:00', '07:30:00', 90.00, 'pickup', 'G1,G2,G3,G4', 'G1,G2', 'G3,G4'),
-(13, 1, 'Biswa Road (near foot over-bridge)', '06:59:00', '07:30:00', 90.00, 'pickup', 'H1,H2,H3,H4', 'H1,H2', 'H3,H4'),
-(14, 1, 'Shewrah (near foot over-bridge)', '07:00:00', '07:30:00', 90.00, 'pickup', 'I1,I2,I3,I4', 'I1,I2', 'I3,I4'),
-(16, 8, 'Mirpur Bangla College', '06:20:00', '07:20:00', 90.00, 'pickup', 'A1,A2,B1,B2', 'A1,A2', 'B1,B2'),
-(17, 8, 'Sony Cinema Hall (near KFC)', '06:24:00', '07:20:00', 90.00, 'pickup', 'C1,C2,D1,D2', 'C1,C2', 'D1,D2'),
-(18, 8, 'Mirpur College Gate (Mirpur 2)', '06:26:00', '07:20:00', 90.00, 'pickup', 'E1,E2,E3,E4', 'E1,E2', 'E3,E4'),
-(19, 8, 'Swimming Federation Gate (Mirpur stadium)', '06:28:00', '07:20:00', 90.00, 'pickup', 'F1,F2,F3,F4', 'F1,F2', 'F3,F4'),
-(20, 8, 'Popular Diagnostic Centre (Mirpur 6)', '06:31:00', '07:20:00', 80.00, 'pickup', 'G1,G2,G3,G4', 'G1,G2', 'G3,G4'),
-(21, 8, 'Pallabi Post Office (near Purobi Cinema Hall)', '06:34:00', '07:20:00', 70.00, 'pickup', 'A3,A4,B3,B4', 'A3,A4', 'B3,B4'),
-(22, 8, 'Mirpur Ceramics (near CNG filling station)', '06:36:00', '07:20:00', 70.00, 'pickup', 'C3,C4,D3,D4', 'C3,C4', 'D3,D4'),
-(23, 8, 'Mirpur DOHS Gate (near Trust bus stop)', '06:40:00', '07:20:00', 60.00, 'pickup', 'H1,H2,H3,H4', 'H1,H2', 'H3,H4'),
-(24, 8, 'Pallabi Thana (Shagufta mour)', '06:43:00', '07:20:00', 60.00, 'pickup', 'I1,I2,I3,I4', 'I1,I2', 'I3,I4'),
-(25, 8, 'Kalshi Bus Stand', '06:45:00', '07:20:00', 50.00, 'pickup', 'J1,J3', 'J1', 'J3'),
-(26, 8, 'ECB Chattar', '06:48:00', '07:20:00', 50.00, 'pickup', 'J2,J4', 'J2', 'J4'),
-(27, 1, 'Abdullahpur', NULL, '14:05:00', 90.00, 'dropoff', 'A1,A2,B1,B2', 'A1,A2', 'B1,B2'),
-(28, 8, 'ABC', NULL, '07:00:00', 90.00, 'dropoff', 'D1,D2,D3,D4,E1,E2', 'D1,D2,D3', 'D4,E1,E2'),
-(29, 8, 'DEF', NULL, NULL, 80.00, 'pickup', 'A1,A2,A3,A4', 'A1,A2', 'A3,A4'),
-(30, 8, 'DEF', NULL, NULL, 70.00, 'dropoff', 'B1,B2,B3,B4', 'B1,B2', 'B3,B4');
+INSERT INTO `route_stops` (`stop_id`, `route_id`, `stop_name`, `fare`, `stop_type`, `seat_numbers`, `male_seats`, `female_seats`) VALUES
+(6, 1, 'Abdullahpur', 90.00, 'pickup', 'A1,A2,B1,B2', 'A1,A2', 'B1,B2'),
+(7, 1, 'House Building (Labaid Diagnostic)', 90.00, 'pickup', 'A3,A4,B3,B4', 'A3,A4', 'B3,B4'),
+(8, 1, 'Azampur (in front of Uttara East Police Station)', 90.00, 'pickup', 'C1,C2,C3,C4', 'C1,C2', 'C3,C4'),
+(9, 1, 'Jasimuddin (Popular Diagnostic Centre)', 90.00, 'pickup', 'D1,D2,D3,D4', 'D1,D2', 'D3,D4'),
+(10, 1, 'Airport (in front of police box)', 90.00, 'pickup', 'E1,E2,E3,E4', 'E1,E2', 'E3,E4'),
+(11, 1, 'Kawla (near foot over-bridge)', 90.00, 'pickup', 'F1,F2,F3,F4', 'F1,F2', 'F3,F4'),
+(12, 1, 'Khilkhet (first foot over-bridge coming from Uttara)', 90.00, 'pickup', 'G1,G2,G3,G4', 'G1,G2', 'G3,G4'),
+(13, 1, 'Biswa Road (near foot over-bridge)', 90.00, 'pickup', 'H1,H2,H3,H4', 'H1,H2', 'H3,H4'),
+(14, 1, 'Shewrah (near foot over-bridge)', 90.00, 'pickup', 'I1,I2,I3,I4', 'I1,I2', 'I3,I4'),
+(16, 8, 'Mirpur Bangla College', 90.00, 'pickup', 'A1,A2,B1,B2', 'A1,A2', 'B1,B2'),
+(17, 8, 'Sony Cinema Hall (near KFC)', 90.00, 'pickup', 'C1,C2,D1,D2', 'C1,C2', 'D1,D2'),
+(18, 8, 'Mirpur College Gate (Mirpur 2)', 90.00, 'pickup', 'E1,E2,E3,E4', 'E1,E2', 'E3,E4'),
+(19, 8, 'Swimming Federation Gate (Mirpur stadium)', 90.00, 'pickup', 'F1,F2,F3,F4', 'F1,F2', 'F3,F4'),
+(20, 8, 'Popular Diagnostic Centre (Mirpur 6)', 80.00, 'pickup', 'G1,G2,G3,G4', 'G1,G2', 'G3,G4'),
+(21, 8, 'Pallabi Post Office (near Purobi Cinema Hall)', 70.00, 'pickup', 'A3,A4,B3,B4', 'A3,A4', 'B3,B4'),
+(22, 8, 'Mirpur Ceramics (near CNG filling station)', 70.00, 'pickup', 'C3,C4,D3,D4', 'C3,C4', 'D3,D4'),
+(23, 8, 'Mirpur DOHS Gate (near Trust bus stop)', 60.00, 'pickup', 'H1,H2,H3,H4', 'H1,H2', 'H3,H4'),
+(24, 8, 'Pallabi Thana (Shagufta mour)', 60.00, 'pickup', 'I1,I2,I3,I4', 'I1,I2', 'I3,I4'),
+(25, 8, 'Kalshi Bus Stand', 50.00, 'pickup', 'J1,J3', 'J1', 'J3'),
+(26, 8, 'ECB Chattar', 50.00, 'pickup', 'J2,J4', 'J2', 'J4'),
+(31, 1, 'Abdullahpur', 90.00, 'dropoff', 'A1,A2,B1,B2', 'A!,A2', 'B1,B2'),
+(32, 1, 'House Building (Labaid Diagnostic)', 80.00, 'dropoff', 'A3,A4,B3,B4', 'A3,A4', 'B3,B4'),
+(33, 8, 'Mirpur Bangla College', 90.00, 'dropoff', 'A1,A2,A3,A4', 'A1,A2', 'A3,A4'),
+(34, 9, 'Mirpur 14 Bus Stand (opposite to Marks Medical College Hospital)', 90.00, 'pickup', 'A1,A2,A3,A4', 'A1,A2', 'A3,A4'),
+(35, 9, 'Mirpur 14 Bus Stand (opposite to Marks Medical College Hospital)', 90.00, 'dropoff', 'A1,A2,A3,A4', 'A1,A2', 'A3,A4');
 
 -- --------------------------------------------------------
 
@@ -162,21 +182,23 @@ CREATE TABLE `seat_bookings` (
   `user_id` int(11) NOT NULL,
   `route_id` int(11) NOT NULL,
   `stop_id` int(11) NOT NULL,
+  `trip_id` int(11) DEFAULT NULL,
   `seat_number` varchar(10) NOT NULL,
   `journey_date` date NOT NULL,
-  `journey_type` varchar(15) NOT NULL
+  `journey_type` varchar(15) NOT NULL,
+  `shift` int(11) NOT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 --
 -- Dumping data for table `seat_bookings`
 --
 
-INSERT INTO `seat_bookings` (`booking_id`, `user_id`, `route_id`, `stop_id`, `seat_number`, `journey_date`, `journey_type`) VALUES
-(41, 11, 1, 6, 'A1', '2024-12-25', 'pickup'),
-(55, 11, 1, 9, 'D1', '2024-12-26', 'pickup'),
-(59, 11, 8, 28, 'D1', '2024-12-27', 'dropoff'),
-(73, 12, 1, 8, 'C1', '2024-12-30', 'pickup'),
-(74, 12, 1, 11, 'F1', '2024-12-31', 'pickup');
+INSERT INTO `seat_bookings` (`booking_id`, `user_id`, `route_id`, `stop_id`, `trip_id`, `seat_number`, `journey_date`, `journey_type`, `shift`) VALUES
+(41, 11, 1, 6, 4, 'A1', '2024-12-25', 'pickup', 1),
+(55, 11, 1, 9, 7, 'D1', '2024-12-26', 'pickup', 1),
+(73, 12, 1, 8, 6, 'C1', '2024-12-30', 'pickup', 1),
+(74, 12, 1, 11, 9, 'F1', '2024-12-31', 'pickup', 1),
+(75, 11, 1, 8, 6, 'C1', '2025-01-01', 'pickup', 1);
 
 -- --------------------------------------------------------
 
@@ -240,15 +262,12 @@ CREATE TABLE `trip_times` (
 --
 
 INSERT INTO `trip_times` (`trip_id`, `stop_id`, `trip_time`, `shift`) VALUES
-(1, 29, '06:40:00', 1),
-(2, 30, '06:45:00', 1),
-(3, 30, '12:45:00', 1),
 (4, 6, '06:40:00', 1),
 (5, 7, '06:43:00', 1),
 (6, 8, '06:46:00', 1),
 (7, 9, '06:49:00', 1),
-(8, 10, '06:51:00', 1),
-(9, 11, '06:52:00', 1),
+(8, 10, '06:43:00', 1),
+(9, 11, '06:53:00', 1),
 (10, 12, '06:56:00', 1),
 (11, 13, '06:59:00', 1),
 (12, 14, '07:00:00', 1),
@@ -263,8 +282,18 @@ INSERT INTO `trip_times` (`trip_id`, `stop_id`, `trip_time`, `shift`) VALUES
 (21, 24, '06:43:00', 1),
 (22, 25, '06:45:00', 1),
 (23, 26, '06:48:00', 1),
-(35, 27, '14:05:00', 2),
-(36, 28, '07:00:00', 1);
+(47, 6, '12:01:00', 2),
+(48, 10, '12:03:00', 2),
+(49, 31, '14:05:00', 1),
+(50, 31, '17:05:00', 2),
+(51, 32, '14:05:00', 1),
+(52, 32, '17:05:00', 2),
+(53, 33, '14:10:00', 1),
+(54, 33, '17:15:00', 2),
+(55, 34, '06:40:00', 1),
+(56, 34, '08:48:00', 2),
+(57, 35, '14:05:00', 1),
+(58, 35, '17:10:00', 2);
 
 -- --------------------------------------------------------
 
@@ -341,6 +370,12 @@ ALTER TABLE `admins`
   ADD PRIMARY KEY (`admin_id`);
 
 --
+-- Indexes for table `bus_offdays`
+--
+ALTER TABLE `bus_offdays`
+  ADD PRIMARY KEY (`id`);
+
+--
 -- Indexes for table `bus_routes`
 --
 ALTER TABLE `bus_routes`
@@ -366,7 +401,8 @@ ALTER TABLE `route_stops`
 ALTER TABLE `seat_bookings`
   ADD PRIMARY KEY (`booking_id`),
   ADD KEY `route_id` (`route_id`),
-  ADD KEY `stop_id` (`stop_id`);
+  ADD KEY `stop_id` (`stop_id`),
+  ADD KEY `fk_trip_id` (`trip_id`);
 
 --
 -- Indexes for table `seat_status`
@@ -411,10 +447,16 @@ ALTER TABLE `admins`
   MODIFY `admin_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=10;
 
 --
+-- AUTO_INCREMENT for table `bus_offdays`
+--
+ALTER TABLE `bus_offdays`
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=3;
+
+--
 -- AUTO_INCREMENT for table `bus_routes`
 --
 ALTER TABLE `bus_routes`
-  MODIFY `route_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=9;
+  MODIFY `route_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=10;
 
 --
 -- AUTO_INCREMENT for table `feedback`
@@ -426,13 +468,13 @@ ALTER TABLE `feedback`
 -- AUTO_INCREMENT for table `route_stops`
 --
 ALTER TABLE `route_stops`
-  MODIFY `stop_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=31;
+  MODIFY `stop_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=36;
 
 --
 -- AUTO_INCREMENT for table `seat_bookings`
 --
 ALTER TABLE `seat_bookings`
-  MODIFY `booking_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=75;
+  MODIFY `booking_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=84;
 
 --
 -- AUTO_INCREMENT for table `staffs`
@@ -444,7 +486,7 @@ ALTER TABLE `staffs`
 -- AUTO_INCREMENT for table `trip_times`
 --
 ALTER TABLE `trip_times`
-  MODIFY `trip_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=37;
+  MODIFY `trip_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=59;
 
 --
 -- AUTO_INCREMENT for table `users`
@@ -473,6 +515,12 @@ ALTER TABLE `feedback`
 --
 ALTER TABLE `route_stops`
   ADD CONSTRAINT `route_stops_ibfk_1` FOREIGN KEY (`route_id`) REFERENCES `bus_routes` (`route_id`) ON DELETE CASCADE;
+
+--
+-- Constraints for table `seat_bookings`
+--
+ALTER TABLE `seat_bookings`
+  ADD CONSTRAINT `fk_trip_id` FOREIGN KEY (`trip_id`) REFERENCES `trip_times` (`trip_id`) ON DELETE CASCADE;
 
 --
 -- Constraints for table `seat_status`

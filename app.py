@@ -454,6 +454,8 @@ def dashboard():
         profile_update_message=profile_update_message,
         travel_history=travel_history
     )
+
+
 @app.route('/add_feedback/<route_name>/<journey_date>', methods=['GET', 'POST'])
 def add_feedback(route_name, journey_date):
     if 'user_id' not in session:
@@ -552,14 +554,14 @@ def staff_dashboard():
     )
 
 
-
 @app.route('/admin_dashboard')
 def admin_dashboard():
     if 'admin_id' in session:
         admin_id = session['admin_id']
 
-        # Fetch admin details
         cursor = mysql.connection.cursor()
+
+        # Fetch admin details
         cursor.execute("SELECT name, email FROM admins WHERE admin_id = %s", (admin_id,))
         admin = cursor.fetchone()
 
@@ -572,18 +574,57 @@ def admin_dashboard():
 
         cursor.execute("SELECT COUNT(*) FROM feedback WHERE reply IS NULL")
         pending_feedback = cursor.fetchone()[0]
-        
+
+        cursor.execute("SELECT COUNT(*) FROM seat_bookings")
+        total_bookings = cursor.fetchone()[0]
+
+        # Fetch insights
+        cursor.execute("""
+            SELECT route_name, COUNT(*) AS bookings
+            FROM seat_bookings sb
+            JOIN bus_routes br ON sb.route_id = br.route_id
+            GROUP BY br.route_id
+            ORDER BY bookings DESC LIMIT 1
+        """)
+        most_used_route = cursor.fetchone()
+        most_used_route = most_used_route[0] if most_used_route else "N/A"
+
+        cursor.execute("""
+            SELECT DATE(sb.journey_date), COUNT(*) AS bookings
+            FROM seat_bookings sb
+            GROUP BY DATE(sb.journey_date)
+            ORDER BY bookings DESC LIMIT 1
+        """)
+        highest_booking_day = cursor.fetchone()
+        highest_booking_day = highest_booking_day[0] if highest_booking_day else "N/A"
+
+        cursor.execute("""
+            SELECT HOUR(tt.trip_time), COUNT(*) AS bookings
+            FROM seat_bookings sb
+            JOIN trip_times tt ON sb.trip_id = tt.trip_id
+            GROUP BY HOUR(tt.trip_time)
+            ORDER BY bookings DESC LIMIT 1
+        """)
+        peak_travel_time = cursor.fetchone()
+        peak_travel_time = f"{peak_travel_time[0]}:00" if peak_travel_time else "N/A"
+
         cursor.close()
 
         return render_template(
-            'admin_dashboard.html', 
-            admin=admin, 
-            total_users=total_users, 
-            pending_requests=pending_requests, 
-            pending_feedback=pending_feedback
+            'admin_dashboard.html',
+            admin=admin,
+            total_users=total_users,
+            pending_requests=pending_requests,
+            pending_feedback=pending_feedback,
+            total_bookings=total_bookings,
+            most_used_route=most_used_route,
+            highest_booking_day=highest_booking_day,
+            peak_travel_time=peak_travel_time,
         )
     else:
         return redirect(url_for('adminlogin'))
+
+
 
 def send_email_notification(recipient, subject, message):
     try:
@@ -799,7 +840,55 @@ def remove_staff(staff_id):
 
     flash("Staff member removed successfully", "success")
     return redirect(url_for('view_faculty_staff'))
+@app.route('/admin/add_offdays', methods=['GET', 'POST'])
+def add_offdays():
+    if 'admin_id' not in session:
+        return redirect(url_for('admin_login'))
 
+    if request.method == 'POST':
+        off_dates = request.form.getlist('off_dates[]')  # List of off-days
+        description = request.form.get('description', None)
+
+        cursor = mysql.connection.cursor()
+        for off_date in off_dates:
+            cursor.execute("""
+                INSERT INTO bus_offdays (off_date, description)
+                VALUES (%s, %s)
+            """, (off_date, description))
+        mysql.connection.commit()
+        cursor.close()
+
+        flash('Off-days added successfully!', 'success')
+        return redirect(url_for('view_offdays'))
+
+    return render_template('add_offdays.html')
+
+
+@app.route('/admin/view_offdays', methods=['GET', 'POST'])
+def view_offdays():
+    if 'admin_id' not in session:
+        return redirect(url_for('admin_login'))
+
+    cursor = mysql.connection.cursor()
+    cursor.execute("SELECT id, off_date, description, created_at FROM bus_offdays ORDER BY off_date ASC")
+    offdays = cursor.fetchall()
+    cursor.close()
+
+    return render_template('view_offdays.html', offdays=offdays)
+
+
+@app.route('/admin/delete_offday/<int:offday_id>', methods=['POST'])
+def delete_offday(offday_id):
+    if 'admin_id' not in session:
+        return redirect(url_for('admin_login'))
+
+    cursor = mysql.connection.cursor()
+    cursor.execute("DELETE FROM bus_offdays WHERE id = %s", (offday_id,))
+    mysql.connection.commit()
+    cursor.close()
+
+    flash('Off-day deleted successfully!', 'success')
+    return redirect(url_for('view_offdays'))
 
 # Define the route for updating the user's profile
 @app.route('/update_profile', methods=['GET', 'POST'])
@@ -937,14 +1026,18 @@ def select_route():
         FROM seat_bookings
         WHERE user_id = %s AND journey_date = CURDATE()
     """, (user_id,))
-    existing_booking = cursor.fetchone()
+    existing_booking = cursor.fetchall()
+    
 
     # Determine allowed journey type based on existing booking
-    allowed_journey_type = None
+    allowed_journey_type = "pickup/dropoff"
     if existing_booking:
-        if existing_booking[0] == "pickup":
+        if len(existing_booking) == 2:
+            allowed_journey_type = "No_option"
+        elif existing_booking[0][0] == "pickup":
+           
             allowed_journey_type = "dropoff"
-        elif existing_booking[0] == "dropoff":
+        elif existing_booking[0][0] == "dropoff":
             allowed_journey_type = "pickup"
 
     # Fetch available routes
@@ -976,7 +1069,6 @@ def select_route():
         stop_data=stop_data,
         allowed_journey_type=allowed_journey_type
     )
-
 
 @app.route('/select_seat', methods=['GET', 'POST'])
 def select_seat():
@@ -1171,12 +1263,16 @@ def confirm_otp():
             flash("The selected seat has already been booked by another user. Please choose a different seat.", "danger")
             return redirect(url_for('select_seat', route_id=booking_details['route_id'],
                                     journey_type=booking_details['journey_type'], stop_id=booking_details['stop_id'], shift=booking_details['shift']))
+        cursor.execute("""
+            SELECT trip_id FROM trip_times WHERE stop_id = %s AND shift = %s
+        """, (booking_details['stop_id'], booking_details['shift']))
+        trip_id = cursor.fetchone()[0]
 
         # Confirm booking
         cursor.execute("""
-            INSERT INTO seat_bookings (user_id, route_id, stop_id, seat_number, journey_type, journey_date, shift)
-            VALUES (%s, %s, %s, %s, %s, %s, %s)
-        """, (session['user_id'], booking_details['route_id'], booking_details['stop_id'],
+            INSERT INTO seat_bookings (user_id, route_id, stop_id, trip_id, seat_number, journey_type, journey_date, shift)
+            VALUES (%s, %s, %s, %s, %s, %s, %s, %s)
+        """, (session['user_id'], booking_details['route_id'], booking_details['stop_id'], trip_id,
               booking_details['seat_number'], booking_details['journey_type'], date.today(), booking_details['shift']))
         mysql.connection.commit()
         cursor.close()

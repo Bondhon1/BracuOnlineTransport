@@ -2,6 +2,24 @@
 
 {% block content %}
 <div class="container mt-5">
+    <!-- Alert Modal -->
+<div class="modal fade" id="alertModal" tabindex="-1" aria-labelledby="alertModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header bg-warning text-white">
+                <h5 class="modal-title" id="alertModalLabel">Alert</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body" id="alertModalBody">
+                <!-- Dynamic message will appear here -->
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-primary" data-bs-dismiss="modal">OK</button>
+            </div>
+        </div>
+    </div>
+</div>
+
     <h2 class="text-center mb-4">Select Route</h2>
     <form id="routeForm" method="GET" action="{{ url_for('select_seat') }}">
         <div class="form-group">
@@ -48,18 +66,36 @@
     const routeForm = document.getElementById('routeForm');
     const allowedJourneyType = "{{ allowed_journey_type }}";
 
-    // Add event listener for journey type restriction
+    // Function to show the modal with a custom message
+    function showModal(message) {
+        const modalBody = document.getElementById('alertModalBody');
+        modalBody.textContent = message;
+
+        const alertModal = new bootstrap.Modal(document.getElementById('alertModal'));
+        alertModal.show();
+    }
+
+    // Event listener for journey type
     document.getElementById('journey_type').addEventListener('change', function () {
         const journeyType = this.value;
-        if (allowedJourneyType && journeyType !== allowedJourneyType) {
-            alert(`You have already booked a ${allowedJourneyType} journey. You can only select a ${allowedJourneyType} journey.`);
+
+        if (allowedJourneyType === "No_option") {
+            showModal("You have already booked both Pickup & Dropoff journeys. Book again tomorrow.");
             this.value = ""; // Reset the selection
+            return;
         }
+
+        if (allowedJourneyType !== "pickup/dropoff" && journeyType !== allowedJourneyType) {
+            showModal(`You have already booked a ${journeyType} journey. You can only select a ${allowedJourneyType} journey.`);
+            this.value = ""; // Reset the selection
+            return;
+        }
+
+        updateStops();
     });
 
-    // Dynamically populate stops
+    // Event listener for route changes
     document.getElementById('route_id').addEventListener('change', updateStops);
-    document.getElementById('journey_type').addEventListener('change', updateStops);
 
     function updateStops() {
         const routeId = document.getElementById('route_id').value;
@@ -81,15 +117,16 @@
     }
 
     routeForm.addEventListener('submit', function (event) {
-        // Ensure all fields are selected before submission
         const routeId = document.getElementById('route_id').value;
         const journeyType = document.getElementById('journey_type').value;
         const stopId = document.getElementById('stop_id').value;
 
         if (!routeId || !journeyType || !stopId) {
             event.preventDefault();
-            alert('Please fill all fields before proceeding.');
+            showModal("Please fill all fields before proceeding.");
         }
     });
 </script>
+
+
 {% endblock %}
