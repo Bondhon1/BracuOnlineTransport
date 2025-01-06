@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Host: 127.0.0.1
--- Generation Time: Jan 05, 2025 at 01:16 PM
+-- Generation Time: Jan 06, 2025 at 01:34 PM
 -- Server version: 10.4.32-MariaDB
 -- PHP Version: 8.0.30
 
@@ -126,6 +126,34 @@ INSERT INTO `feedback` (`id`, `user_id`, `bus_number`, `feedback`, `rating`, `jo
 -- --------------------------------------------------------
 
 --
+-- Table structure for table `payment_records`
+--
+
+CREATE TABLE `payment_records` (
+  `payment_id` int(11) NOT NULL,
+  `booking_id` int(11) NOT NULL,
+  `user_id` int(11) NOT NULL,
+  `name` varchar(100) NOT NULL,
+  `email` varchar(100) NOT NULL,
+  `student_id` varchar(50) NOT NULL,
+  `department` varchar(100) NOT NULL,
+  `payment_method` varchar(20) NOT NULL,
+  `payment_number` varchar(20) NOT NULL,
+  `amount` decimal(10,2) NOT NULL,
+  `payment_date` datetime DEFAULT current_timestamp(),
+  `ticket_file` varchar(255) DEFAULT NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+--
+-- Dumping data for table `payment_records`
+--
+
+INSERT INTO `payment_records` (`payment_id`, `booking_id`, `user_id`, `name`, `email`, `student_id`, `department`, `payment_method`, `payment_number`, `amount`, `payment_date`, `ticket_file`) VALUES
+(10, 99, 17, 'Atik Morshed', 'morshedatik25@gmail.com', '24341253', 'CSE', 'bkash', '01308552054', 50.00, '2025-01-06 03:36:07', NULL);
+
+-- --------------------------------------------------------
+
+--
 -- Table structure for table `route_stops`
 --
 
@@ -186,19 +214,26 @@ CREATE TABLE `seat_bookings` (
   `seat_number` varchar(10) NOT NULL,
   `journey_date` date NOT NULL,
   `journey_type` varchar(15) NOT NULL,
-  `shift` int(11) NOT NULL
+  `shift` int(11) NOT NULL,
+  `payment_method` varchar(20) DEFAULT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 --
 -- Dumping data for table `seat_bookings`
 --
 
-INSERT INTO `seat_bookings` (`booking_id`, `user_id`, `route_id`, `stop_id`, `trip_id`, `seat_number`, `journey_date`, `journey_type`, `shift`) VALUES
-(41, 11, 1, 6, 4, 'A1', '2024-12-25', 'pickup', 1),
-(55, 11, 1, 9, 7, 'D1', '2024-12-26', 'pickup', 1),
-(73, 12, 1, 8, 6, 'C1', '2024-12-30', 'pickup', 1),
-(74, 12, 1, 11, 9, 'F1', '2024-12-31', 'pickup', 1),
-(75, 11, 1, 8, 6, 'C1', '2025-01-01', 'pickup', 1);
+INSERT INTO `seat_bookings` (`booking_id`, `user_id`, `route_id`, `stop_id`, `trip_id`, `seat_number`, `journey_date`, `journey_type`, `shift`, `payment_method`) VALUES
+(41, 11, 1, 6, 4, 'A1', '2024-12-25', 'pickup', 1, NULL),
+(55, 11, 1, 9, 7, 'D1', '2024-12-26', 'pickup', 1, NULL),
+(73, 12, 1, 8, 6, 'C1', '2024-12-30', 'pickup', 1, NULL),
+(74, 12, 1, 11, 9, 'F1', '2024-12-31', 'pickup', 1, NULL),
+(75, 11, 1, 8, 6, 'C1', '2025-01-01', 'pickup', 1, NULL),
+(84, 13, 1, 10, 8, 'E1', '2025-01-06', 'pickup', 1, NULL),
+(85, 13, 1, 32, 52, 'A3', '2025-01-06', 'dropoff', 2, NULL),
+(86, 14, 1, 13, 11, 'H1', '2025-01-06', 'pickup', 1, 'bkash'),
+(87, 14, 8, 33, 53, 'A1', '2025-01-06', 'dropoff', 1, 'bkash'),
+(94, 16, 1, 8, 6, 'C1', '2025-01-06', 'pickup', 1, 'bkash'),
+(99, 17, 8, 17, 14, 'G4', '2025-01-06', 'Pickup', 1, 'bkash');
 
 -- --------------------------------------------------------
 
@@ -325,7 +360,10 @@ CREATE TABLE `users` (
 INSERT INTO `users` (`id`, `name`, `email`, `password`, `full_name`, `student_id`, `department`, `address`, `mobile_number`, `blood_group`, `registration_date`, `profile_image`, `Gender`, `verified`) VALUES
 (3, 'Test2', 'test@gmail.com', '$2b$12$V1NHub3q9r.beB4JasL6/u8B0Ex1CpOWWQ7WUWNK0P/JAfXWatSR2', 'Bondhon', 22101459, 'CSE', '16/2 Rajshahi1', 1796381258, 'B+', '2024-12-22 18:19:27', '20220211_172451.jpg', 'Female', 1),
 (11, 'Bondhon2', 'bondhon0101@gmail.com', '$2b$12$9P7EZzfbXDOTwMNCQX6nc.nFCoIEBxXsgh27Z0cdJGlW9DL.zWdp2', 'Bondhon 2', 22101458, 'CSE', '16/2 Rajshahi1', 1711111100, 'B+', '2024-12-22 13:01:16', '20220216_174052.jpg', 'Male', 1),
-(12, 'Bondhon3', 'samiul.haque.bondhon@g.bracu.ac.bd', '$2b$12$hAC3uW/eLNkWY8cEtHj8b.NET/ZTiIVhl1698D6YWnhwGsV4zYfAq', 'Bondhon 3', 22101459, 'CSE', 'Dhaka', 1111111111, 'B-', '2024-12-24 17:42:13', '20220216_174052.jpg', 'Male', 1);
+(12, 'Bondhon3', 'samiul.haque.bondhon@g.bracu.ac.bd', '$2b$12$hAC3uW/eLNkWY8cEtHj8b.NET/ZTiIVhl1698D6YWnhwGsV4zYfAq', 'Bondhon 3', 22101459, 'CSE', 'Dhaka', 1111111111, 'B-', '2024-12-24 17:42:13', '20220216_174052.jpg', 'Male', 1),
+(17, 'Atik Morshed', 'morshedatik25@gmail.com', '$2b$12$yADj1TrQS5sIvinsG7q64eCnjYl6cd0TJtk999F4C3eDZrHFY/XLK', 'Atik Morshed', 24341253, 'CSE', 'Merul Badda', 1308552051, 'B+', '2025-01-05 21:11:56', '459292116_1944410799394879_8603148027797368013_n.jpg', 'Male', 1),
+(18, 'Atik', 'atik.morshed.bracu.cs@gmail.com', '$2b$12$zqKZZihIIqVi18AVvs17Le7VARtD3zO5VBAMf19mfoTlvUUPgurrG', 'Atik Morshe', 22101552, 'CSE', 'Merul Badda', 1308552051, 'B+', '2025-01-06 07:59:55', '24341253_Atik_Morshed_CV.png', 'Male', 1),
+(19, 'Farhan Rifat', 'pumpycp@gmail.com', '$2b$12$HjCxGDRAD7.G2NS98DXeHu5acKPwLQFhqmf/RhXHMFyxFGzI/MoEm', 'Farhan Rifat', 22101761, 'CSE', 'Merul Badda', 1931642595, 'B+', '2025-01-06 12:03:14', 'cab4b210-98ff-465d-b43c-a0d8b8226eb5.jpg', 'Male', 1);
 
 -- --------------------------------------------------------
 
@@ -386,6 +424,14 @@ ALTER TABLE `bus_routes`
 --
 ALTER TABLE `feedback`
   ADD PRIMARY KEY (`id`),
+  ADD KEY `user_id` (`user_id`);
+
+--
+-- Indexes for table `payment_records`
+--
+ALTER TABLE `payment_records`
+  ADD PRIMARY KEY (`payment_id`),
+  ADD KEY `booking_id` (`booking_id`),
   ADD KEY `user_id` (`user_id`);
 
 --
@@ -465,6 +511,12 @@ ALTER TABLE `feedback`
   MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=13;
 
 --
+-- AUTO_INCREMENT for table `payment_records`
+--
+ALTER TABLE `payment_records`
+  MODIFY `payment_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=15;
+
+--
 -- AUTO_INCREMENT for table `route_stops`
 --
 ALTER TABLE `route_stops`
@@ -474,7 +526,7 @@ ALTER TABLE `route_stops`
 -- AUTO_INCREMENT for table `seat_bookings`
 --
 ALTER TABLE `seat_bookings`
-  MODIFY `booking_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=84;
+  MODIFY `booking_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=104;
 
 --
 -- AUTO_INCREMENT for table `staffs`
@@ -492,7 +544,7 @@ ALTER TABLE `trip_times`
 -- AUTO_INCREMENT for table `users`
 --
 ALTER TABLE `users`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=13;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=20;
 
 --
 -- AUTO_INCREMENT for table `vehicle_requests`
@@ -509,6 +561,13 @@ ALTER TABLE `vehicle_requests`
 --
 ALTER TABLE `feedback`
   ADD CONSTRAINT `feedback_ibfk_1` FOREIGN KEY (`user_id`) REFERENCES `users` (`id`);
+
+--
+-- Constraints for table `payment_records`
+--
+ALTER TABLE `payment_records`
+  ADD CONSTRAINT `payment_records_ibfk_1` FOREIGN KEY (`booking_id`) REFERENCES `seat_bookings` (`booking_id`),
+  ADD CONSTRAINT `payment_records_ibfk_2` FOREIGN KEY (`user_id`) REFERENCES `users` (`id`);
 
 --
 -- Constraints for table `route_stops`

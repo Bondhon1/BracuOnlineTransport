@@ -1,0 +1,14 @@
+<div class="modal-header">
+    <h5 class="modal-title">Enter Mobile Number for Refund</h5>
+    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+</div>
+<div class="modal-body">
+    <form id="refundMobileForm">
+        <div class="mb-3">
+            <label for="mobile" class="form-label">{{ payment_method }} Mobile Number</label>
+            <input type="tel" class="form-control" id="mobile" name="mobile" required 
+                   pattern="01[3-9][0-9]{8}" placeholder="01XXXXXXXXX">
+        </div>
+        <button type="submit" class="btn btn-primary">Send OTP</button>
+    </form>
+</div> 

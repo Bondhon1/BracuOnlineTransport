@@ -2,6 +2,9 @@
 
 {% block content %}
 <div class="container mt-5">
+    <div class="alert alert-warning text-center mb-4">
+        <h5>Time Remaining: <span id="timer">01:00</span></h5>
+    </div>
     {% with messages = get_flashed_messages(with_categories=true) %}
     {% if messages %}
         {% for category, message in messages %}
@@ -140,6 +143,41 @@
 
         seatGrid.appendChild(rowDiv);
     }
+    // Store timer start time in session storage
+    sessionStorage.setItem('timerStartTime', Date.now().toString());
+
+    // Timer functionality
+    let timeLeft = {{ timer_duration }};
+
+    function updateTimer() {
+        const startTime = sessionStorage.getItem('timerStartTime');
+        if (!startTime) {
+            window.location.href = "{{ url_for('dashboard') }}";
+            return;
+        }
+
+        const elapsedTime = Math.floor((Date.now() - parseInt(startTime)) / 1000);
+        timeLeft = Math.max(0, {{ timer_duration }} - elapsedTime);
+
+        if (timeLeft <= 0) {
+            clearInterval(timerInterval);
+            alert('Seat selection session expired. You will be redirected to the dashboard.');
+            window.location.href = "{{ url_for('dashboard') }}";
+            return;
+        }
+
+        const minutes = Math.floor(timeLeft / 60);
+        const seconds = timeLeft % 60;
+        document.getElementById('timer').textContent = 
+            `${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
+    }
+
+    const timerInterval = setInterval(updateTimer, 1000);
+
+    // Clear timer when form is submitted
+    document.querySelector('form')?.addEventListener('submit', function(e) {
+        // Don't clear the timer, let it continue on the payment page
+    });
 </script>
 
 

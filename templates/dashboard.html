@@ -69,7 +69,58 @@
       </table>
     </div>
   </div>
- 
+<!-- My Tickets Section -->
+<div class="card shadow mb-4">
+  <div class="card-header bg-primary text-white">
+      <h5 class="mb-0">My Tickets</h5>
+  </div>
+  <div class="card-body">
+      {% if tickets %}
+          <div class="table-responsive">
+              <table class="table table-striped table-hover">
+                  <thead class="thead-dark">
+                      <tr>
+                          <th>Date</th>
+                          <th>Route</th>
+                          <th>Stop</th>
+                          <th>Journey Type</th>
+                          <th>Shift</th>
+                          <th>Seat</th>
+                          <th>Action</th>
+                      </tr>
+                  </thead>
+                  <tbody>
+                      {% for ticket in tickets %}
+                      <tr>
+                          <td>{{ ticket[7].strftime('%Y-%m-%d') if ticket[7] else '' }}</td>
+                          <td>{{ ticket[11] }}</td>
+                          <td>{{ ticket[12] }}</td>
+                          <td>{{ ticket[6] }}</td>
+                          <td>{{ ticket[8] }}</td>
+                          <td>{{ ticket[5] }}</td>
+                          <td>
+                              <div class="btn-group">
+                              <a href="{{ url_for('download_ticket', booking_id=ticket[0]) if ticket[0] != 0 else '#' }}" 
+                                 class="btn btn-sm btn-primary {% if ticket[0] == 0 %}disabled{% endif %}">
+                                  <i class="fas fa-download"></i> Download
+                              </a>
+                              <button onclick="cancelTicket({{ ticket[0] }})" 
+                                      class="btn btn-sm btn-danger">
+                                  <i class="fas fa-times"></i> Cancel
+                              </button>
+                              </div>
+                          </td>
+                      </tr>
+                      {% endfor %}
+                  </tbody>
+              </table>
+          </div>
+      {% else %}
+          <p class="text-muted">No active tickets found.</p>
+      {% endif %}
+  </div>
+</div>
+<div id="refundModalContainer"></div>
 <!-- Travel History Section -->
 <div id="travel-history-section" class="card shadow mb-4">
   <div class="card-header bg-secondary text-white">Your Past Travel History</div>
@@ -155,5 +206,100 @@
   </div>
   {% endif %}
 </div>
+<script>
+  function cancelTicket(bookingId) {
+      if (confirm('Are you sure you want to cancel this ticket? This action cannot be undone.')) {
+          fetch(`/cancel_ticket/${bookingId}`, { method: 'POST' })
+          .then(response => response.json())
+          .then(data => {
+              if (data.status === 'success') {
+                  // Inject full modal content into container
+                  document.getElementById('refundModalContainer').innerHTML = `
+                      <div class="modal fade" id="refundModal" tabindex="-1" aria-labelledby="refundModalLabel" aria-hidden="true">
+                          <div class="modal-dialog">
+                              <div class="modal-content">
+                                  ${data.html}
+                              </div>
+                          </div>
+                      </div>
+                  `;
 
+                  // Initialize and show modal
+                  const refundModal = new bootstrap.Modal(document.querySelector('#refundModal'));
+                  refundModal.show();
+
+                  // Set up event listeners
+                  setupRefundMobileForm();
+              } else {
+                  alert(data.message);
+              }
+          })
+          .catch(error => {
+              console.error('Error:', error);
+              alert('An unexpected error occurred. Please try again.');
+          });
+      }
+  }
+
+  function setupRefundMobileForm() {
+      document.getElementById('refundMobileForm')?.addEventListener('submit', function (e) {
+          e.preventDefault();
+          const formData = new FormData(this);
+
+          fetch('/verify_refund_mobile', { method: 'POST', body: formData })
+          .then(response => response.json())
+          .then(data => {
+              if (data.status === 'success') {
+                  document.getElementById('refundModalContainer').innerHTML = `
+                      <div class="modal fade" id="refundModal" tabindex="-1" aria-labelledby="refundModalLabel" aria-hidden="true">
+                          <div class="modal-dialog">
+                              <div class="modal-content">
+                                  ${data.html}
+                              </div>
+                          </div>
+                      </div>
+                  `;
+
+                  const refundModal = new bootstrap.Modal(document.querySelector('#refundModal'));
+                  refundModal.show();
+
+                  setupRefundOtpForm();
+              } else {
+                  alert(data.message);
+              }
+          })
+          .catch(error => {
+              console.error('Error:', error);
+              alert('An unexpected error occurred. Please try again.');
+          });
+      });
+  }
+
+  function setupRefundOtpForm() {
+      document.getElementById('refundOtpForm')?.addEventListener('submit', function (e) {
+          e.preventDefault();
+          const formData = new FormData(this);
+
+          fetch('/process_refund', { method: 'POST', body: formData })
+          .then(response => response.json())
+          .then(data => {
+              if (data.status === 'success') {
+                  const refundModal = bootstrap.Modal.getInstance(document.getElementById('refundModal'));
+                  refundModal.hide();
+                  alert(data.message);
+                  window.location.href = data.redirect;
+              } else {
+                  alert(data.message);
+              }
+          })
+          .catch(error => {
+              console.error('Error:', error);
+              alert('An unexpected error occurred. Please try again.');
+          });
+      });
+  }
+</script>
+
+
+  
 {% endblock %}
