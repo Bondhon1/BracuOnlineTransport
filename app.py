@@ -831,7 +831,7 @@ def view_admin_schedules():
 
     return render_template('view_admin_schedules.html', schedules=schedules)
 
-    return render_template('view_admin_schedules.html', schedules=schedules)
+    
 
 
 
@@ -1111,6 +1111,8 @@ def staff_update_profile():
 
 
 
+from datetime import datetime
+
 @app.route('/select_route', methods=['GET', 'POST'])
 def select_route():
     if 'user_id' not in session:
@@ -1119,6 +1121,22 @@ def select_route():
     user_id = session['user_id']
     cursor = mysql.connection.cursor()
 
+    # Check for off days
+    current_date = datetime.now().date()
+    current_day = datetime.now().strftime('%A')
+
+    # Check if today is a weekend or in the bus_offdays table
+    if current_day in ['Saturday', 'Sunday']:
+        flash("Today is an off day. Ticket booking is not allowed.", "danger")
+        return redirect(url_for('dashboard'))
+
+    cursor.execute("SELECT off_date FROM bus_offdays WHERE off_date = %s", (current_date,))
+    off_day = cursor.fetchone()
+
+    if off_day:
+        flash("Ticket booking is not allowed on scheduled off days.", "danger")
+        return redirect(url_for('dashboard'))
+
     # Check if the user has already booked a pickup or dropoff journey
     cursor.execute("""
         SELECT journey_type
@@ -1126,7 +1144,6 @@ def select_route():
         WHERE user_id = %s AND journey_date = CURDATE()
     """, (user_id,))
     existing_booking = cursor.fetchall()
-    
 
     # Determine allowed journey type based on existing booking
     allowed_journey_type = "pickup/dropoff"
@@ -1134,7 +1151,6 @@ def select_route():
         if len(existing_booking) == 2:
             allowed_journey_type = "No_option"
         elif existing_booking[0][0] == "pickup":
-           
             allowed_journey_type = "dropoff"
         elif existing_booking[0][0] == "dropoff":
             allowed_journey_type = "pickup"
@@ -1168,6 +1184,7 @@ def select_route():
         stop_data=stop_data,
         allowed_journey_type=allowed_journey_type
     )
+
 
 @app.route('/select_seat', methods=['GET', 'POST'])
 def select_seat():
