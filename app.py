@@ -94,7 +94,67 @@ def send_email_notification(recipient, subject, message):
         print(f"Email sent to {recipient}")
     except Exception as e:
         print(f"Failed to send email: {e}")
+@app.route('/dashboard')
+def dashboard():
+    if 'user_id' not in session:
+        return redirect(url_for('login'))
 
+    user_id = session['user_id']
+    cursor = mysql.connection.cursor()
+    today = date.today().strftime('%Y-%m-%d')
+
+    # Fetch user details
+    cursor.execute("SELECT * FROM users WHERE id=%s", (user_id,))
+    user = cursor.fetchone()
+
+    # Fetch user's feedbacks and admin replies
+    cursor.execute("""
+        SELECT feedback, rating, reply, journey_date 
+        FROM feedback 
+        WHERE user_id=%s 
+        ORDER BY journey_date DESC
+    """, (user_id,))
+    feedbacks = cursor.fetchall()
+
+    # Count unread replies
+    cursor.execute("""
+        SELECT COUNT(*) 
+        FROM feedback 
+        WHERE user_id=%s AND reply IS NOT NULL AND viewed=0
+    """, (user_id,))
+    new_replies_count = cursor.fetchone()[0]
+
+    # Mark all replies as viewed
+    cursor.execute("""
+        UPDATE feedback 
+        SET viewed=1 
+        WHERE user_id=%s AND reply IS NOT NULL
+    """, (user_id,))
+    mysql.connection.commit()
+
+    # Fetch user's past travel history with route and stop names
+    cursor.execute("""
+        SELECT br.route_name, rs.stop_name, sb.seat_number, sb.journey_type, sb.journey_date 
+        FROM seat_bookings sb
+        JOIN bus_routes br ON sb.route_id = br.route_id
+        JOIN route_stops rs ON sb.stop_id = rs.stop_id
+        WHERE sb.user_id = %s AND sb.journey_date < CURDATE()
+        ORDER BY sb.journey_date DESC
+    """, (user_id,))
+    travel_history = cursor.fetchall()
+
+    cursor.close()
+    return render_template(
+        'dashboard.html',
+        user=user,
+        tickets=tickets,
+        feedbacks=feedbacks,
+        new_replies_count=new_replies_count,
+        profile_update_message=profile_update_message,
+        travel_history=travel_history,
+        today=today  # Pass today's date to the template
+    )
+    
 @app.route('/view_users', methods=['GET', 'POST'])
 def view_users():
     if 'admin_id' not in session:
