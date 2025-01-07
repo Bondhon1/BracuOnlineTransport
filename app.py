@@ -216,6 +216,11 @@ def get_feedback_from_db():
     cursor.close()
     return feedbacks
 
+def calculate_average_rating(feedbacks):
+    if not feedbacks:
+        return 0
+    total_rating = sum(f[4] for f in feedbacks)  # Rating is at index 4
+    return total_rating / len(feedbacks)
 # Route for viewing feedback (admin-only)
 @app.route('/view_feedback')
 def view_feedback():
