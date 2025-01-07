@@ -254,19 +254,6 @@ def reply_feedback(feedback_id):
     flash("Reply sent successfully!", "success")
     return redirect(url_for('view_feedback'))
 
-def calculate_average_rating(feedbacks):
-    if not feedbacks:
-        return 0
-    total_rating = sum(f[4] for f in feedbacks)  
-    return total_rating / len(feedbacks)
-def send_email_notification(recipient, subject, message):
-    try:
-        msg = Message(subject, recipients=[recipient])
-        msg.body = message
-        mail.send(msg)
-        print(f"Email sent to {recipient}")
-    except Exception as e:
-        print(f"Failed to send email: {e}")
 
 
 # Run the Flask application with debug mode enabled
