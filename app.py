@@ -254,6 +254,14 @@ def calculate_average_rating(feedbacks):
         return 0
     total_rating = sum(f[4] for f in feedbacks)  # Rating is at index 4
     return total_rating / len(feedbacks)
+def send_email_notification(recipient, subject, message):
+    try:
+        msg = Message(subject, recipients=[recipient])
+        msg.body = message
+        mail.send(msg)
+        print(f"Email sent to {recipient}")
+    except Exception as e:
+        print(f"Failed to send email: {e}")
 
 
 # Run the Flask application with debug mode enabled
