@@ -257,7 +257,7 @@ def reply_feedback(feedback_id):
 def calculate_average_rating(feedbacks):
     if not feedbacks:
         return 0
-    total_rating = sum(f[4] for f in feedbacks)  # Rating is at index 4
+    total_rating = sum(f[4] for f in feedbacks)  
     return total_rating / len(feedbacks)
 def send_email_notification(recipient, subject, message):
     try:
