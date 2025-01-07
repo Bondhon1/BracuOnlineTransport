@@ -49,51 +49,6 @@ class FeedbackForm(FlaskForm):
     rating = IntegerField('Rating (1-5)', validators=[DataRequired()])
     journey_date = DateField('Journey Date', validators=[DataRequired()])
     submit = SubmitField('Submit Feedback')
-
-@app.route('/add_feedback/<route_name>/<journey_date>', methods=['GET', 'POST'])
-def add_feedback(route_name, journey_date):
-    if 'user_id' not in session:
-        return redirect(url_for('login'))
-
-    user_id = session['user_id']
-
-    if request.method == 'POST':
-        rating = request.form.get('rating')
-        feedback = request.form.get('feedback')
-
-        cursor = mysql.connection.cursor()
-
-        # Fetch username and email for the user
-        cursor.execute("SELECT name, email FROM users WHERE id = %s", (user_id,))
-        user_details = cursor.fetchone()
-        if not user_details:
-            flash("Unable to fetch user details. Please contact admin.", "danger")
-            return redirect(url_for('dashboard'))
-
-        username, email = user_details
-
-        # Insert feedback with username and email
-        cursor.execute("""
-            INSERT INTO feedback (user_id, name, email, route_name, journey_date, rating, feedback)
-            VALUES (%s, %s, %s, %s, %s, %s, %s)
-        """, (user_id, username, email, route_name, journey_date, rating, feedback))
-        mysql.connection.commit()
-        cursor.close()
-
-        flash("Feedback submitted successfully!", "success")
-        return redirect(url_for('dashboard'))
-
-    return render_template('add_feedback.html', route_name=route_name, journey_date=journey_date)
-
-
-def send_email_notification(recipient, subject, message):
-    try:
-        msg = Message(subject, recipients=[recipient])
-        msg.body = message
-        mail.send(msg)
-        print(f"Email sent to {recipient}")
-    except Exception as e:
-        print(f"Failed to send email: {e}")
 @app.route('/dashboard')
 def dashboard():
     if 'user_id' not in session:
@@ -154,6 +109,51 @@ def dashboard():
         travel_history=travel_history,
         today=today  # Pass today's date to the template
     )
+@app.route('/add_feedback/<route_name>/<journey_date>', methods=['GET', 'POST'])
+def add_feedback(route_name, journey_date):
+    if 'user_id' not in session:
+        return redirect(url_for('login'))
+
+    user_id = session['user_id']
+
+    if request.method == 'POST':
+        rating = request.form.get('rating')
+        feedback = request.form.get('feedback')
+
+        cursor = mysql.connection.cursor()
+
+        # Fetch username and email for the user
+        cursor.execute("SELECT name, email FROM users WHERE id = %s", (user_id,))
+        user_details = cursor.fetchone()
+        if not user_details:
+            flash("Unable to fetch user details. Please contact admin.", "danger")
+            return redirect(url_for('dashboard'))
+
+        username, email = user_details
+
+        # Insert feedback with username and email
+        cursor.execute("""
+            INSERT INTO feedback (user_id, name, email, route_name, journey_date, rating, feedback)
+            VALUES (%s, %s, %s, %s, %s, %s, %s)
+        """, (user_id, username, email, route_name, journey_date, rating, feedback))
+        mysql.connection.commit()
+        cursor.close()
+
+        flash("Feedback submitted successfully!", "success")
+        return redirect(url_for('dashboard'))
+
+    return render_template('add_feedback.html', route_name=route_name, journey_date=journey_date)
+
+
+def send_email_notification(recipient, subject, message):
+    try:
+        msg = Message(subject, recipients=[recipient])
+        msg.body = message
+        mail.send(msg)
+        print(f"Email sent to {recipient}")
+    except Exception as e:
+        print(f"Failed to send email: {e}")
+
     
 @app.route('/view_users', methods=['GET', 'POST'])
 def view_users():
