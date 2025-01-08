@@ -139,42 +139,6 @@ class StaffUpdateProfileForm(FlaskForm):
     def validate_PIN(form, field):
         if len(str(field.data)) != 5:
             raise ValidationError('PIN must be exactly 5 digits long.')
-        
-
-class AddScheduleForm(FlaskForm):
-    route_name = StringField("Route Name", validators=[DataRequired()])
-    departure_time = TimeField("Departure Time", format='%H:%M', validators=[DataRequired()])
-    arrival_time = TimeField("Arrival Time", format='%H:%M', validators=[DataRequired()])
-    bus_number = StringField("Bus Number", validators=[DataRequired()])
-    driver_name = StringField("Driver Name")
-    capacity = IntegerField("Capacity")
-    submit = SubmitField("Add Schedule")
-
-class AddBusRouteForm(FlaskForm):
-    route_name = StringField("Route Name", validators=[DataRequired()])
-    bus_number = StringField("Bus Number", validators=[DataRequired()])
-    driver_name = StringField("Driver Name")
-    capacity = IntegerField("Capacity", validators=[DataRequired()])
-    submit = SubmitField("Add Route")
-
-# Feedback form class using Flask-WTF and WTForms
-class FeedbackForm(FlaskForm):
-    bus_number = StringField('Bus Number', validators=[DataRequired()])
-    feedback = TextAreaField('Feedback', validators=[DataRequired(), Length(min=10, max=500)])
-    rating = IntegerField('Rating (1-5)', validators=[DataRequired()])
-    journey_date = DateField('Journey Date', validators=[DataRequired()])
-    submit = SubmitField('Submit Feedback')
-
-
-# Form for adding a bus stop
-class AddBusStopForm(FlaskForm):
-    route_id = SelectField("Route", coerce=int, validators=[DataRequired()])
-    stop_name = StringField("Stop Name", validators=[DataRequired()])
-    pickup_time = TimeField("Pickup Time", validators=[DataRequired()])
-    dropoff_time = TimeField("Drop-off Time", validators=[DataRequired()])
-    fare = FloatField("Fare", validators=[DataRequired()])
-    stop_type = SelectField("Stop Type", choices=[("Pickup", "Pickup"), ("Drop-off", "Drop-off")], validators=[DataRequired()])
-    submit = SubmitField("Add Stop")
 
 class VehicleRequestForm(FlaskForm):
     journey_date = DateField("Journey Date", format='%Y-%m-%d', validators=[DataRequired(), future_date])
@@ -689,41 +653,7 @@ def view_admin_schedules():
         elif stop_type == "dropoff":
             schedules[route_id]["dropoff"][f"shift{shift or '1'}"].append(stop_info)
 
-
     return render_template('view_admin_schedules.html', schedules=schedules)
-
-
-
-
-
- 
-
-@app.route('/view_users', methods=['GET', 'POST'])
-def view_users():
-    if 'admin_id' not in session:
-        return redirect(url_for('adminlogin'))
-
-
-    search_term = request.args.get('search', '')  # Get the search query from the URL parameters
-   
-    cursor = mysql.connection.cursor()
-
-
-    if search_term:
-        # If there is a search term, filter users by ID or name
-        cursor.execute("SELECT * FROM users WHERE id LIKE %s OR name LIKE %s", ('%' + search_term + '%', '%' + search_term + '%'))
-    else:
-        # Otherwise, get all users
-        cursor.execute("SELECT * FROM users")
-   
-    users = cursor.fetchall()
-    cursor.close()
-
-
-    return render_template('view_users.html', users=users, search_term=search_term)
-
-
-
 
 # Define the route for updating the user's profile
 @app.route('/update_profile', methods=['GET', 'POST'])
