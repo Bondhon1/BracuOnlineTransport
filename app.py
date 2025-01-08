@@ -87,21 +87,12 @@ class LoginForm(FlaskForm):
     password = PasswordField("Password", validators=[DataRequired()])  
     submit = SubmitField("Login")
 
-class AdminLoginForm(FlaskForm):
-    email = StringField("Email", validators=[DataRequired(), Email()]) 
-    password = PasswordField("Password", validators=[DataRequired()])  
-    submit = SubmitField("Login")  
 
 class StaffLoginForm(FlaskForm):
     email = StringField("Email", validators=[DataRequired(), Email()]) 
     password = PasswordField("Password", validators=[DataRequired()])  
     submit = SubmitField("Login")
 
-class AddAdminForm(FlaskForm):
-    username = StringField("Username", validators=[DataRequired()])  
-    email = StringField("Email", validators=[DataRequired(), Email()])  
-    password = PasswordField("Password", validators=[DataRequired()])  
-    submit = SubmitField("Add Admin") 
 
 
 
@@ -140,13 +131,6 @@ class StaffUpdateProfileForm(FlaskForm):
         if len(str(field.data)) != 5:
             raise ValidationError('PIN must be exactly 5 digits long.')
 
-class VehicleRequestForm(FlaskForm):
-    journey_date = DateField("Journey Date", format='%Y-%m-%d', validators=[DataRequired(), future_date])
-    pickup_time = TimeField("Pickup Time", format='%H:%M', validators=[DataRequired()])
-    pickup_location = StringField("Pickup Location", validators=[DataRequired(), Length(max=100)])
-    destination = StringField("Destination", validators=[DataRequired(), Length(max=100)])
-    capacity = IntegerField("Capacity", validators=[DataRequired(), NumberRange(min=1, message="Capacity must be at least 1")])
-    submit = SubmitField("Submit Request")
 
 def generate_otp():
     return str(random.randint(100000, 999999))
@@ -333,137 +317,6 @@ def staff_login():
     return render_template('staff_login.html', form=form)  
 
 
-# Define the route for Admin login
-@app.route('/admin_login', methods=['GET', 'POST'])
-def adminlogin():
-    form = AdminLoginForm()  # Create an instance of the login form
-    if form.validate_on_submit():  # If the form is submitted and valid
-        email = form.email.data  # Get the email from the form
-        password = form.password.data  # Get the password from the form
-
-        # Query the database to find the admin by email and password
-        cursor = mysql.connection.cursor()  # Create a cursor to interact with the database
-        cursor.execute("SELECT * FROM admins WHERE email=%s AND password=%s", (email, password))  # Query to find the admin by email and password
-        admin = cursor.fetchone()  # Fetch one record
-        cursor.close()  # Close the cursor
-
-        if admin:
-            session['admin_id'] = admin[0]  # Store the admin's ID in the session
-            return redirect(url_for('admin_dashboard'))  # Redirect to the admin dashboard
-        else:
-            flash("Login failed. Please check your email and password")  # Flash an error message
-            return redirect(url_for('adminlogin'))  # Redirect to the login page
-
-    return render_template('admin_login.html', form=form)  # Render the admin login page with the form
-
-# Define the route for the user dashboard
-@app.route('/dashboard')
-def dashboard():
-    if 'user_id' not in session:
-        return redirect(url_for('login'))
-
-    user_id = session['user_id']
-
-    # Fetch user details
-    cursor = mysql.connection.cursor()
-    cursor.execute("SELECT * FROM users WHERE id=%s", (user_id,))
-    user = cursor.fetchone()
-
-    # Fetch user's feedbacks and admin replies
-    cursor.execute("""
-        SELECT feedback, rating, reply, journey_date 
-        FROM feedback 
-        WHERE user_id=%s 
-        ORDER BY journey_date DESC
-    """, (user_id,))
-    feedbacks = cursor.fetchall()
-
-    # Count unread replies
-    cursor.execute("""
-        SELECT COUNT(*) 
-        FROM feedback 
-        WHERE user_id=%s AND reply IS NOT NULL AND viewed=0
-    """, (user_id,))
-    new_replies_count = cursor.fetchone()[0]
-
-    # Mark all replies as viewed
-    cursor.execute("""
-        UPDATE feedback 
-        SET viewed=1 
-        WHERE user_id=%s AND reply IS NOT NULL
-    """, (user_id,))
-    mysql.connection.commit()
-
-    # Fetch user's past travel history with route and stop names
-    cursor.execute("""
-        SELECT br.route_name, rs.stop_name, sb.seat_number, sb.journey_type, sb.journey_date 
-        FROM seat_bookings sb
-        JOIN bus_routes br ON sb.route_id = br.route_id
-        JOIN route_stops rs ON sb.stop_id = rs.stop_id
-        WHERE sb.user_id = %s AND sb.journey_date < CURDATE()
-        ORDER BY sb.journey_date DESC
-    """, (user_id,))
-    travel_history = cursor.fetchall()
-
-    cursor.close()
-
-    # Fetch and remove the profile update message from the session
-    profile_update_message = session.pop('profile_update_message', None)
-
-    return render_template(
-        'dashboard.html',
-        user=user,
-        feedbacks=feedbacks,
-        new_replies_count=new_replies_count,
-        profile_update_message=profile_update_message,
-        travel_history=travel_history
-    )
-@app.route('/add_feedback/<route_name>/<journey_date>', methods=['GET', 'POST'])
-def add_feedback(route_name, journey_date):
-    if 'user_id' not in session:
-        return redirect(url_for('login'))
-
-    user_id = session['user_id']
-
-    cursor = mysql.connection.cursor()
-
-    # Fetch the bus number for the route
-    cursor.execute("SELECT bus_number FROM bus_routes WHERE route_name = %s", (route_name,))
-    bus_details = cursor.fetchone()
-    if not bus_details:
-        flash("Unable to fetch bus details for the selected route. Please contact admin.", "danger")
-        return redirect(url_for('dashboard'))
-
-    bus_number = bus_details[0]
-
-    if request.method == 'POST':
-        rating = request.form.get('rating')
-        feedback = request.form.get('feedback')
-
-        # Fetch username and email for the user
-        cursor.execute("SELECT name, email FROM users WHERE id = %s", (user_id,))
-        user_details = cursor.fetchone()
-        if not user_details:
-            flash("Unable to fetch user details. Please contact admin.", "danger")
-            return redirect(url_for('dashboard'))
-
-        username, email = user_details
-
-        # Insert feedback with username, email, and bus number
-        cursor.execute("""
-            INSERT INTO feedback (user_id, name, email, route_name, bus_number, journey_date, rating, feedback)
-            VALUES (%s, %s, %s, %s, %s, %s, %s, %s)
-        """, (user_id, username, email, route_name, bus_number, journey_date, rating, feedback))
-        mysql.connection.commit()
-        cursor.close()
-
-        flash("Feedback submitted successfully!", "success")
-        return redirect(url_for('dashboard'))
-
-    cursor.close()
-    return render_template('add_feedback.html', route_name=route_name, journey_date=journey_date, bus_number=bus_number)
-
-
 @app.route('/staff_dashboard')
 def staff_dashboard():
     if 'staff_id' not in session:
@@ -515,40 +368,6 @@ def staff_dashboard():
         vehicle_request_message=vehicle_request_message
     )
 
-
-
-@app.route('/admin_dashboard')
-def admin_dashboard():
-    if 'admin_id' in session:
-        admin_id = session['admin_id']
-
-        # Fetch admin details
-        cursor = mysql.connection.cursor()
-        cursor.execute("SELECT name, email FROM admins WHERE admin_id = %s", (admin_id,))
-        admin = cursor.fetchone()
-
-        # Fetch analytics data
-        cursor.execute("SELECT (SELECT COUNT(*) FROM users) + (SELECT COUNT(*) FROM staffs)")
-        total_users = cursor.fetchone()[0]
-
-        cursor.execute("SELECT COUNT(*) FROM vehicle_requests WHERE status = 'Pending'")
-        pending_requests = cursor.fetchone()[0]
-
-        cursor.execute("SELECT COUNT(*) FROM feedback WHERE reply IS NULL")
-        pending_feedback = cursor.fetchone()[0]
-        
-        cursor.close()
-
-        return render_template(
-            'admin_dashboard.html', 
-            admin=admin, 
-            total_users=total_users, 
-            pending_requests=pending_requests, 
-            pending_feedback=pending_feedback
-        )
-    else:
-        return redirect(url_for('adminlogin'))
-
 def send_email_notification(recipient, subject, message):
     try:
         msg = Message(subject, recipients=[recipient])
@@ -558,102 +377,7 @@ def send_email_notification(recipient, subject, message):
     except Exception as e:
         print(f"Failed to send email: {e}")
 
-@app.route('/admin/view_schedules', methods=['GET', 'POST'])
-def view_admin_schedules():
-    if 'admin_id' not in session:
-        return redirect(url_for('admin_login'))
 
-    if request.method == 'POST':
-        trip_id = request.form.get('trip_id')
-        stop_id = request.form.get('stop_id')  # Get stop_id from the form
-        shift = request.form['shift']
-        new_time = request.form['new_time']
-        print(f"Received stop_id: {stop_id}, trip_id: {trip_id}, shift: {shift}, new_time: {new_time}")
-
-        cursor = mysql.connection.cursor()
-        if not trip_id:  # Insert new shift
-            cursor.execute("""
-                INSERT INTO trip_times (stop_id, trip_time, shift)
-                VALUES (%s, %s, %s)
-            """, (stop_id, new_time, shift))
-            mysql.connection.commit()
-            flash(f"Shift {shift} time added successfully!", "success")
-        else:  # Update existing shift
-            cursor.execute("""
-                UPDATE trip_times
-                SET trip_time = %s
-                WHERE trip_id = %s
-            """, (new_time, trip_id))
-            mysql.connection.commit()
-            flash(f"Shift {shift} time updated successfully!", "success")
-
-            # Notify affected users
-            cursor.execute("""
-                SELECT id, email, name FROM users
-            """)
-            affected_users = cursor.fetchall()
-
-            for user in affected_users:
-                try:
-                    msg = Message(
-                        subject="Bus Schedule Update",
-                        sender=app.config['MAIL_USERNAME'],
-                        recipients=[user[1]],  # User email
-                        body=f"Dear {user[2]},\n\nThe schedule for your booked trip has been updated. "
-                             f"Please check the updated times on your dashboard.\n\nBest Regards,\nUniversity Transport System"
-                    )
-                    mail.send(msg)
-                    print(f"Email sent to {user[1]}")
-                except Exception as e:
-                    print(f"Error sending email to {user[1]}: {e}")
-
-        cursor.close()
-        return redirect(url_for('view_admin_schedules'))
-
-    # Fetch data for GET request
-    cursor = mysql.connection.cursor()
-    cursor.execute("""
-        SELECT route_id, route_name, bus_number, driver_name
-        FROM bus_routes
-    """)
-    bus_routes = cursor.fetchall()
-
-    cursor.execute("""
-        SELECT rs.route_id, rs.stop_id, rs.stop_name, tt.trip_id, tt.trip_time, rs.stop_type, tt.shift
-        FROM route_stops rs
-        LEFT JOIN trip_times tt ON rs.stop_id = tt.stop_id
-        ORDER BY rs.route_id, rs.stop_type, rs.stop_name, tt.shift
-    """)
-    stops_and_times = cursor.fetchall()
-    cursor.close()
-
-    # Organize data
-    schedules = {}
-    for route in bus_routes:
-        route_id = route[0]
-        if route_id not in schedules:
-            schedules[route_id] = {
-                "route_name": route[1],
-                "bus_number": route[2],
-                "driver_name": route[3],
-                "pickup": {"shift1": [], "shift2": []},
-                "dropoff": {"shift1": [], "shift2": []}
-            }
-
-    for stop in stops_and_times:
-        route_id, stop_id, stop_name, trip_id, trip_time, stop_type, shift = stop
-        stop_info = {
-            "stop_id": stop_id,
-            "stop_name": stop_name,
-            "trip_id": trip_id,
-            "time": trip_time if trip_time else "N/A"
-        }
-        if stop_type == "pickup":
-            schedules[route_id]["pickup"][f"shift{shift or '1'}"].append(stop_info)
-        elif stop_type == "dropoff":
-            schedules[route_id]["dropoff"][f"shift{shift or '1'}"].append(stop_info)
-
-    return render_template('view_admin_schedules.html', schedules=schedules)
 
 # Define the route for updating the user's profile
 @app.route('/update_profile', methods=['GET', 'POST'])
@@ -721,8 +445,6 @@ def update_profile():
 
     return render_template('update_profile.html', form=form)
 
-
-
 @app.route('/staff_update_profile', methods=['GET', 'POST'])
 def staff_update_profile():
     if 'staff_id' not in session:
@@ -775,10 +497,6 @@ def staff_update_profile():
 
     return render_template('staff_update_profile.html', form=form)
 
-
-
-
-
 @app.route('/request_vehicle', methods=['GET', 'POST'])
 def request_vehicle():
     if 'staff_id' not in session:
@@ -826,8 +544,6 @@ def view_requests():
     cursor.close()
 
     return render_template('view_requests.html', requests=requests)
-
-
 
 @app.route('/respond_request/<int:request_id>', methods=['POST'])
 def respond_request(request_id):
@@ -888,15 +604,9 @@ def respond_request(request_id):
 
     return redirect(url_for('view_requests'))
 
-
-
-
-
 @app.route('/payment')
 def payment():
     return render_template('payment.html')
-
-
 
 @app.route('/logout')
 def logout():
