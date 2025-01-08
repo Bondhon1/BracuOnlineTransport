@@ -1,0 +1,43 @@
+{% extends 'app.html' %}
+
+
+{% block content %}
+<div class="container mt-5">
+    <h2 class="text-center">View Faculty and Staff</h2>
+
+
+    <!-- Search Form -->
+    <form action="{{ url_for('view_faculty_staff') }}" method="get" class="mb-4">
+        <div class="input-group">
+            <input type="text" class="form-control" placeholder="Search by ID or Name" name="search" value="{{ search_term }}">
+            <button class="btn btn-primary" type="submit">Search</button>
+        </div>
+    </form>
+
+
+    <table class="table table-striped mt-4">
+        <thead>
+            <tr>
+                <th>ID</th>
+                <th>Name</th>
+                <th>Email</th>
+                <th>Actions</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for staff in staffs %}
+            <tr>
+                <td>{{ staff[0] }}</td>  <!-- Staff ID -->
+                <td>{{ staff[1] }}</td>  <!-- Full Name (staff[1] is full_name) -->
+                <td>{{ staff[2] }}</td>  <!-- Email (staff[2] is email) -->
+                <td>
+                    <form action="{{ url_for('remove_staff', staff_id=staff[0]) }}" method="POST" style="display:inline;">
+                        <button type="submit" class="btn btn-danger">Remove</button>
+                    </form>
+                </td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+{% endblock %}
