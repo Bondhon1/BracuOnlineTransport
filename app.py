@@ -151,6 +151,51 @@ def add_feedback(route_name, journey_date):
 
     return render_template('add_feedback.html', route_name=route_name, journey_date=journey_date)
 
+@app.route('/add_feedback/<route_name>/<journey_date>', methods=['GET', 'POST'])
+def add_feedback(route_name, journey_date):
+    if 'user_id' not in session:
+        return redirect(url_for('login'))
+
+    user_id = session['user_id']
+
+    cursor = mysql.connection.cursor()
+
+    # Fetch the bus number for the route
+    cursor.execute("SELECT bus_number FROM bus_routes WHERE route_name = %s", (route_name,))
+    bus_details = cursor.fetchone()
+    if not bus_details:
+        flash("Unable to fetch bus details for the selected route. Please contact admin.", "danger")
+        return redirect(url_for('dashboard'))
+
+    bus_number = bus_details[0]
+
+    if request.method == 'POST':
+        rating = request.form.get('rating')
+        feedback = request.form.get('feedback')
+
+        # Fetch username and email for the user
+        cursor.execute("SELECT name, email FROM users WHERE id = %s", (user_id,))
+        user_details = cursor.fetchone()
+        if not user_details:
+            flash("Unable to fetch user details. Please contact admin.", "danger")
+            return redirect(url_for('dashboard'))
+
+        username, email = user_details
+
+        # Insert feedback with username, email, and bus number
+        cursor.execute("""
+            INSERT INTO feedback (user_id, name, email, route_name, bus_number, journey_date, rating, feedback)
+            VALUES (%s, %s, %s, %s, %s, %s, %s, %s)
+        """, (user_id, username, email, route_name, bus_number, journey_date, rating, feedback))
+        mysql.connection.commit()
+        cursor.close()
+
+        flash("Feedback submitted successfully!", "success")
+        return redirect(url_for('dashboard'))
+
+    cursor.close()
+    return render_template('add_feedback.html', route_name=route_name, journey_date=journey_date, bus_number=bus_number)
+
 @app.route('/admin_dashboard')
 def admin_dashboard():
     if 'admin_id' in session:
