@@ -49,6 +49,12 @@ def allowed_file(filename):
 def future_date(form, field):
     if field.data <= date.today():
         raise ValidationError("Journey date must be in the future.")
+        
+class AddAdminForm(FlaskForm):
+    username = StringField("Username", validators=[DataRequired()])  
+    email = StringField("Email", validators=[DataRequired(), Email()])  
+    password = PasswordField("Password", validators=[DataRequired()])  
+    submit = SubmitField("Add Admin") 
 
 # Form for adding a bus stop
 class AddBusStopForm(FlaskForm):
@@ -343,8 +349,6 @@ def select_seat():
         user_gender=user_info['gender'],
         timer_duration=60
     )
-
-
 
 
 @app.route('/send_otp', methods=['POST'])
