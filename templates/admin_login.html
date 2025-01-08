@@ -1,0 +1,69 @@
+{% extends 'app.html' %}
+{% block content %}
+
+<!-- Container for the login form, styled with Bootstrap -->
+<div class="container">
+  <!-- Header for the login form -->
+  <h2>Admin Login Form</h2>
+
+    <!-- Display flash messages, such as login errors -->
+    {% with messages = get_flashed_messages() %}
+    {% if messages %}
+        <!-- Alert box for error messages -->
+        <div class="alert alert-danger">
+            <ul>
+                <!-- Loop through and display each message -->
+                {% for message in messages %}
+                <li>{{ message }}</li>
+                {% endfor %}
+            </ul>
+        </div>
+    {% endif %}
+    {% endwith %}
+
+  <!-- Login form, submits to the /admin_login route using POST method -->
+  <form action="/admin_login" method="POST">
+    <!-- Hidden tag to help protect against CSRF (Cross-Site Request Forgery) -->
+    {{ form.hidden_tag() }}
+
+    <!-- Form group for the email field -->
+    <div class="form-group">
+        <!-- Label for the email field -->
+        {{ form.email.label(for="email")}}
+        <!-- Email input field with Bootstrap styling -->
+        {{ form.email(id="email", class="form-control")}}
+  
+        <!-- Display validation errors for the email field -->
+        {% if form.email.errors %}
+              <ul>
+                  {% for error in form.email.errors %}
+                      <li>{{ error }}</li>
+                  {% endfor %}
+              </ul>
+        {% endif %}
+    </div>
+
+    <!-- Form group for the password field -->
+    <div class="form-group">
+        <!-- Label for the password field -->
+        {{ form.password.label(for="password")}}
+        <!-- Password input field with Bootstrap styling -->
+        {{ form.password(id="password", class="form-control")}}
+
+        <!-- Display validation errors for the password field -->
+        {% if form.password.errors %}
+                <ul>
+                    {% for error in form.password.errors %}
+                        <li>{{ error }}</li>
+                    {% endfor %}
+                </ul>
+        {% endif %}
+    </div>
+
+    <!-- Submit button to log in, with Bootstrap styling -->
+    {{ form.submit(class="btn btn-dark mt-4")}}
+    
+  </form>
+</div>
+
+{% endblock %}
