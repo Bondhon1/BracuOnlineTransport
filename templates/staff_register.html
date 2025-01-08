@@ -1,0 +1,29 @@
+{% extends 'app.html' %}
+{% block content %}
+<div class="container mt-5">
+    <h2 class="text-center">Staff Registration</h2>
+    <form method="POST" action="">
+        {{ form.hidden_tag() }}
+
+        <div class="form-group">
+            {{ form.initial.label(class="form-label") }}
+            {{ form.initial(class="form-control") }}
+        </div>
+
+        <div class="form-group">
+            {{ form.email.label(class="form-label") }}
+            {{ form.email(class="form-control") }}
+        </div>
+
+        <div class="form-group">
+            {{ form.password.label(class="form-label") }}
+            {{ form.password(class="form-control") }}
+        </div>
+
+        <div class="text-center mt-4">
+            {{ form.submit(class="btn btn-primary") }}
+            <a href="{{ url_for('staff_login') }}" class="btn btn-secondary ml-2">Cancel</a>
+        </div>
+    </form>
+</div>
+{% endblock %}
