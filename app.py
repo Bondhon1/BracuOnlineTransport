@@ -42,6 +42,13 @@ app.secret_key = 'your_secret_key_here'
 
 mysql = MySQL(app)
 
+
+class AddAdminForm(FlaskForm):
+    username = StringField("Username", validators=[DataRequired()])  
+    email = StringField("Email", validators=[DataRequired(), Email()])  
+    password = PasswordField("Password", validators=[DataRequired()])  
+    submit = SubmitField("Add Admin") 
+
 # Feedback form class using Flask-WTF and WTForms
 class FeedbackForm(FlaskForm):
     bus_number = StringField('Bus Number', validators=[DataRequired()])
@@ -144,7 +151,75 @@ def add_feedback(route_name, journey_date):
 
     return render_template('add_feedback.html', route_name=route_name, journey_date=journey_date)
 
+@app.route('/admin_dashboard')
+def admin_dashboard():
+    if 'admin_id' in session:
+        admin_id = session['admin_id']
 
+        cursor = mysql.connection.cursor()
+
+        # Fetch admin details
+        cursor.execute("SELECT name, email FROM admins WHERE admin_id = %s", (admin_id,))
+        admin = cursor.fetchone()
+
+        # Fetch analytics data
+        cursor.execute("SELECT (SELECT COUNT(*) FROM users) + (SELECT COUNT(*) FROM staffs)")
+        total_users = cursor.fetchone()[0]
+
+        cursor.execute("SELECT COUNT(*) FROM vehicle_requests WHERE status = 'Pending'")
+        pending_requests = cursor.fetchone()[0]
+
+        cursor.execute("SELECT COUNT(*) FROM feedback WHERE reply IS NULL")
+        pending_feedback = cursor.fetchone()[0]
+
+        cursor.execute("SELECT COUNT(*) FROM seat_bookings")
+        total_bookings = cursor.fetchone()[0]
+
+        # Fetch insights
+        cursor.execute("""
+            SELECT route_name, COUNT(*) AS bookings
+            FROM seat_bookings sb
+            JOIN bus_routes br ON sb.route_id = br.route_id
+            GROUP BY br.route_id
+            ORDER BY bookings DESC LIMIT 1
+        """)
+        most_used_route = cursor.fetchone()
+        most_used_route = most_used_route[0] if most_used_route else "N/A"
+
+        cursor.execute("""
+            SELECT DATE(sb.journey_date), COUNT(*) AS bookings
+            FROM seat_bookings sb
+            GROUP BY DATE(sb.journey_date)
+            ORDER BY bookings DESC LIMIT 1
+        """)
+        highest_booking_day = cursor.fetchone()
+        highest_booking_day = highest_booking_day[0] if highest_booking_day else "N/A"
+
+        cursor.execute("""
+            SELECT HOUR(tt.trip_time), COUNT(*) AS bookings
+            FROM seat_bookings sb
+            JOIN trip_times tt ON sb.trip_id = tt.trip_id
+            GROUP BY HOUR(tt.trip_time)
+            ORDER BY bookings DESC LIMIT 1
+        """)
+        peak_travel_time = cursor.fetchone()
+        peak_travel_time = f"{peak_travel_time[0]}:00" if peak_travel_time else "N/A"
+
+        cursor.close()
+
+        return render_template(
+            'admin_dashboard.html',
+            admin=admin,
+            total_users=total_users,
+            pending_requests=pending_requests,
+            pending_feedback=pending_feedback,
+            total_bookings=total_bookings,
+            most_used_route=most_used_route,
+            highest_booking_day=highest_booking_day,
+            peak_travel_time=peak_travel_time,
+        )
+    else:
+        return redirect(url_for('adminlogin'))
 def send_email_notification(recipient, subject, message):
     try:
         msg = Message(subject, recipients=[recipient])
@@ -250,7 +325,29 @@ def view_admin_schedules():
             schedules[route_id]["dropoff"][f"shift{shift or '1'}"].append(stop_info)
 
     return render_template('view_admin_schedules.html', schedules=schedules)
+    
+@app.route('/admin_login', methods=['GET', 'POST'])
+def adminlogin():
+    form = AdminLoginForm()  # Create an instance of the login form
+    if form.validate_on_submit():  # If the form is submitted and valid
+        email = form.email.data  # Get the email from the form
+        password = form.password.data  # Get the password from the form
 
+        # Query the database to find the admin by email and password
+        cursor = mysql.connection.cursor()  # Create a cursor to interact with the database
+        cursor.execute("SELECT * FROM admins WHERE email=%s AND password=%s", (email, password))  # Query to find the admin by email and password
+        admin = cursor.fetchone()  # Fetch one record
+        cursor.close()  # Close the cursor
+
+        if admin:
+            session['admin_id'] = admin[0]  # Store the admin's ID in the session
+            return redirect(url_for('admin_dashboard'))  # Redirect to the admin dashboard
+        else:
+            flash("Login failed. Please check your email and password")  # Flash an error message
+            return redirect(url_for('adminlogin'))  # Redirect to the login page
+
+    return render_template('admin_login.html', form=form)  # Render the admin login page with the form
+    
 @app.route('/view_schedules')
 def view_schedules():
     cursor = mysql.connection.cursor()
