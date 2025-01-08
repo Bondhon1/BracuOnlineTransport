@@ -1,0 +1,14 @@
+<div class="modal-header">
+    <h5 class="modal-title">Verify OTP for Refund</h5>
+    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+</div>
+<div class="modal-body">
+    <form id="refundOtpForm">
+        <div class="mb-3">
+            <label for="otp" class="form-label">Enter OTP sent to your mobile</label>
+            <input type="text" class="form-control" id="otp" name="otp" required 
+                   pattern="[0-9]{6}" maxlength="6" placeholder="Enter 6-digit OTP">
+        </div>
+        <button type="submit" class="btn btn-primary">Process Refund</button>
+    </form>
+</div> 

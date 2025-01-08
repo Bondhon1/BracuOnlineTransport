@@ -1,0 +1,15 @@
+<div class="modal-content">
+    <div class="modal-header">
+        <h5 class="modal-title">Enter {{ payment_method|title }} Number</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+    </div>
+    <div class="modal-body">
+        <form id="mobileForm">
+            <div class="mb-3">
+                <label for="mobile" class="form-label">{{ payment_method|title }} Number</label>
+                <input type="text" class="form-control" id="mobile" name="mobile" required pattern="01[3-9][0-9]{8}" placeholder="01XXXXXXXXX">
+            </div>
+            <button type="submit" class="btn btn-primary">Send OTP</button>
+        </form>
+    </div>
+</div> 
