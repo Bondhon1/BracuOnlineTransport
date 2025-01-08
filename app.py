@@ -50,7 +50,22 @@ def future_date(form, field):
     if field.data <= date.today():
         raise ValidationError("Journey date must be in the future.")
 
+# Form for adding a bus stop
+class AddBusStopForm(FlaskForm):
+    route_id = SelectField("Route", coerce=int, validators=[DataRequired()])
+    stop_name = StringField("Stop Name", validators=[DataRequired()])
+    pickup_time = TimeField("Pickup Time", validators=[DataRequired()])
+    dropoff_time = TimeField("Drop-off Time", validators=[DataRequired()])
+    fare = FloatField("Fare", validators=[DataRequired()])
+    stop_type = SelectField("Stop Type", choices=[("Pickup", "Pickup"), ("Drop-off", "Drop-off")], validators=[DataRequired()])
+    submit = SubmitField("Add Stop")
 
+class AddBusRouteForm(FlaskForm):
+    route_name = StringField("Route Name", validators=[DataRequired()])
+    bus_number = StringField("Bus Number", validators=[DataRequired()])
+    driver_name = StringField("Driver Name")
+    capacity = IntegerField("Capacity", validators=[DataRequired()])
+    submit = SubmitField("Add Route")
 
 
 def generate_otp():
@@ -470,27 +485,7 @@ def add_bus_stop():
 
 
 
-@app.route('/logout')
-def logout():
-    # Determine the current session type
-    if 'user_id' in session:
-        session.pop('user_id', None)
-        flash("You have been logged out successfully.")
-        return redirect(url_for('login'))
 
-    elif 'staff_id' in session:
-        session.pop('staff_id', None)
-        flash("You have been logged out successfully.")
-        return redirect(url_for('staff_login'))
-
-    elif 'admin_id' in session:
-        session.pop('admin_id', None)
-        flash("Admin has been logged out successfully.")
-        return redirect(url_for('adminlogin'))
-
-    # Default case if no session exists
-    flash("You are not logged in.")
-    return redirect(url_for('index'))
 
 
 # Run the Flask application with debug mode enabled
