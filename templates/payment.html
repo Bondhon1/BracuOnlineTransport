@@ -1,0 +1,220 @@
+{% extends "app.html" %}
+
+{% block content %}
+<div class="container mt-5">
+    <!-- Timer Display -->
+    <div class="alert alert-warning text-center mb-4">
+        <h5>Time Remaining: <span id="timer">05:00</span></h5>
+        <small class="text-muted">Complete payment before time expires</small>
+    </div>
+
+    <div class="row justify-content-center">
+        <div class="col-md-6">
+            <div class="card">
+                <div class="card-header bg-primary text-white">
+                    <h3 class="text-center mb-0">Select Payment Method</h3>
+                </div>
+                <div class="card-body">
+                    <div class="text-center mb-4">
+                        <h5>Fare: <span class="text-success">{{ fare }} TK</span></h5>
+                    </div>
+                    
+                    <form id="paymentForm" method="POST">
+                        <div class="payment-options">
+                            <div class="form-check payment-option mb-4 p-3 border rounded">
+                                <input class="form-check-input" type="radio" name="payment_method" id="bkash" value="bkash" required>
+                                <label class="form-check-label d-flex align-items-center" for="bkash">
+                                    <img src="{{ url_for('static', filename='images/bkash.png') }}" alt="bKash" style="height: 50px; margin-right: 15px;">
+                                    <span class="fs-5">bKash</span>
+                                </label>
+                            </div>
+                            
+                            <div class="form-check payment-option mb-4 p-3 border rounded">
+                                <input class="form-check-input" type="radio" name="payment_method" id="nagad" value="nagad">
+                                <label class="form-check-label d-flex align-items-center" for="nagad">
+                                    <img src="{{ url_for('static', filename='images/nagad.png') }}" alt="Nagad" style="height: 50px; margin-right: 15px;">
+                                    <span class="fs-5">Nagad</span>
+                                </label>
+                            </div>
+                            
+                            <div class="form-check payment-option mb-4 p-3 border rounded">
+                                <input class="form-check-input" type="radio" name="payment_method" id="card" value="card">
+                                <label class="form-check-label d-flex align-items-center" for="card">
+                                    <img src="{{ url_for('static', filename='images/card.png') }}" alt="Card" style="height: 50px; margin-right: 15px;">
+                                    <span class="fs-5">Visa/Mastercard</span>
+                                </label>
+                            </div>
+                        </div>
+                        <div class="text-center mt-4">
+                            <button type="submit" class="btn btn-primary btn-lg px-5">Proceed to Payment</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Payment Modal -->
+<div class="modal fade" id="paymentModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content" id="modalContent">
+            <!-- Content will be loaded dynamically -->
+        </div>
+    </div>
+</div>
+
+<script>
+// Get the start time from session storage
+const startTime = sessionStorage.getItem('timerStartTime');
+const totalDuration = 300; // 5 minute in seconds
+
+function updateTimer() {
+    if (!startTime) {
+        window.location.href = "{{ url_for('dashboard') }}";
+        return;
+    }
+
+    const elapsedTime = Math.floor((Date.now() - parseInt(startTime)) / 1000);
+    const timeLeft = Math.max(0, totalDuration - elapsedTime);
+
+    if (timeLeft <= 0) {
+        clearInterval(timerInterval);
+        alert('Payment session expired. You will be redirected to the dashboard.');
+        window.location.href = "{{ url_for('dashboard') }}";
+        return;
+    }
+
+    const minutes = Math.floor(timeLeft / 60);
+    const seconds = timeLeft % 60;
+    document.getElementById('timer').textContent = 
+        `${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
+}
+
+const timerInterval = setInterval(updateTimer, 1000);
+
+// Payment form handling
+document.getElementById('paymentForm').addEventListener('submit', function(e) {
+    e.preventDefault();
+    const formData = new FormData(this);
+    
+    fetch('/payment_verification', {
+        method: 'POST',
+        body: formData
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.status === 'success') {
+            document.getElementById('modalContent').innerHTML = data.html;
+            new bootstrap.Modal(document.getElementById('paymentModal')).show();
+            setupMobileForm();
+        } else {
+            alert(data.message);
+        }
+    });
+});
+
+function setupMobileForm() {
+    document.getElementById('mobileForm')?.addEventListener('submit', function(e) {
+        e.preventDefault();
+        const formData = new FormData(this);
+        
+        fetch('/verify_payment_mobile', {
+            method: 'POST',
+            body: formData
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.status === 'success') {
+                alert('Demo OTP: ' + data.demo_otp); // Remove in production
+                document.getElementById('modalContent').innerHTML = data.html;
+                setupOtpForm();
+            } else {
+                alert(data.message);
+            }
+        });
+    });
+}
+
+function setupOtpForm() {
+    document.getElementById('otpForm')?.addEventListener('submit', function(e) {
+        e.preventDefault();
+        const formData = new FormData(this);
+        
+        fetch('/verify_payment_otp', {
+            method: 'POST',
+            body: formData
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.status === 'success') {
+                document.getElementById('modalContent').innerHTML = data.html;
+                setupPasswordForm();
+            } else {
+                alert(data.message);
+            }
+        });
+    });
+}
+
+function setupPasswordForm() {
+    document.getElementById('passwordForm')?.addEventListener('submit', function(e) {
+        e.preventDefault();
+        const formData = new FormData(this);
+        
+        fetch('/complete_payment', {
+            method: 'POST',
+            body: formData
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.status === 'success') {
+                clearInterval(timerInterval);
+                sessionStorage.removeItem('timerStartTime');
+                alert(data.message);
+                window.location.href = data.redirect;
+            } else {
+                alert(data.message);
+            }
+        });
+    });
+}
+
+// Add event listeners for payment method selection
+document.querySelectorAll('input[name="payment_method"]').forEach(radio => {
+    radio.addEventListener('change', function() {
+        document.querySelector('button[type="submit"]').disabled = false;
+    });
+});
+</script>
+
+<style>
+    .payment-option {
+        transition: all 0.3s ease;
+        cursor: pointer;
+    }
+    
+    .payment-option:hover {
+        background-color: #f8f9fa;
+        transform: translateY(-2px);
+        box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+    }
+    
+    .form-check-input {
+        margin-top: 1.2rem;
+    }
+    
+    .form-check-label {
+        width: 100%;
+        margin-left: 10px;
+    }
+    
+    .payment-option.border {
+        border-color: #dee2e6 !important;
+    }
+    
+    .payment-option:hover .form-check-label {
+        color: #0d6efd;
+    }
+</style>
+{% endblock %}
