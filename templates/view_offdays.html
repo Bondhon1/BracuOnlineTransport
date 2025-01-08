@@ -1,0 +1,45 @@
+{% extends 'app.html' %}
+
+{% block content %}
+<div class="container mt-5">
+    <h2 class="text-center mb-4">View Off-Days</h2>
+
+    {% with messages = get_flashed_messages(with_categories=true) %}
+    {% if messages %}
+        {% for category, message in messages %}
+        <div class="alert alert-{{ category }} alert-dismissible fade show" role="alert">
+            {{ message }}
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+        </div>
+        {% endfor %}
+    {% endif %}
+    {% endwith %}
+
+    <table class="table table-bordered table-hover">
+        <thead>
+            <tr>
+                <th>#</th>
+                <th>Off-Date</th>
+                <th>Description</th>
+                <th>Added On</th>
+                <th>Actions</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for offday in offdays %}
+            <tr>
+                <td>{{ loop.index }}</td>
+                <td>{{ offday[1] }}</td>
+                <td>{{ offday[2] or 'N/A' }}</td>
+                <td>{{ offday[3] }}</td>
+                <td>
+                    <form method="POST" action="{{ url_for('delete_offday', offday_id=offday[0]) }}" class="d-inline">
+                        <button type="submit" class="btn btn-danger btn-sm">Delete</button>
+                    </form>
+                </td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+{% endblock %}
