@@ -695,29 +695,9 @@ def view_admin_schedules():
 
 
 
-# Define the route to add a new admin
-@app.route('/add_admin', methods=['GET', 'POST'])
-def add_admin():
-    if 'admin_id' not in session:
-        return redirect(url_for('adminlogin'))
 
-    form = AddAdminForm()
 
-    if form.validate_on_submit():
-        username = form.username.data
-        email = form.email.data
-        password = form.password.data
-
-        cursor = mysql.connection.cursor()
-        cursor.execute("INSERT INTO admins (name, email, password) VALUES (%s, %s, %s)",
-                       (username, email, password))
-        mysql.connection.commit()
-        cursor.close()
-
-        flash('New admin added successfully!', 'success')
-        return redirect(url_for('admin_dashboard'))
-
-    return render_template('add_admin.html', form=form)
+ 
 
 @app.route('/view_users', methods=['GET', 'POST'])
 def view_users():
