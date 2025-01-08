@@ -154,6 +154,150 @@ def send_email_notification(recipient, subject, message):
     except Exception as e:
         print(f"Failed to send email: {e}")
 
+@app.route('/admin/view_schedules', methods=['GET', 'POST'])
+def view_admin_schedules():
+    if 'admin_id' not in session:
+        return redirect(url_for('admin_login'))
+
+    if request.method == 'POST':
+        trip_id = request.form.get('trip_id')
+        stop_id = request.form.get('stop_id')  # Get stop_id from the form
+        shift = request.form['shift']
+        new_time = request.form['new_time']
+        print(f"Received stop_id: {stop_id}, trip_id: {trip_id}, shift: {shift}, new_time: {new_time}")
+
+        cursor = mysql.connection.cursor()
+        if not trip_id:  # Insert new shift
+            cursor.execute("""
+                INSERT INTO trip_times (stop_id, trip_time, shift)
+                VALUES (%s, %s, %s)
+            """, (stop_id, new_time, shift))
+            mysql.connection.commit()
+            flash(f"Shift {shift} time added successfully!", "success")
+        else:  # Update existing shift
+            cursor.execute("""
+                UPDATE trip_times
+                SET trip_time = %s
+                WHERE trip_id = %s
+            """, (new_time, trip_id))
+            mysql.connection.commit()
+            flash(f"Shift {shift} time updated successfully!", "success")
+
+            # Notify affected users
+            cursor.execute("""
+                SELECT id, email, name FROM users
+            """)
+            affected_users = cursor.fetchall()
+
+            for user in affected_users:
+                try:
+                    msg = Message(
+                        subject="Bus Schedule Update",
+                        sender=app.config['MAIL_USERNAME'],
+                        recipients=[user[1]],  # User email
+                        body=f"Dear {user[2]},\n\nThe schedule for your booked trip has been updated. "
+                             f"Please check the updated times on your dashboard.\n\nBest Regards,\nUniversity Transport System"
+                    )
+                    mail.send(msg)
+                    print(f"Email sent to {user[1]}")
+                except Exception as e:
+                    print(f"Error sending email to {user[1]}: {e}")
+
+        cursor.close()
+        return redirect(url_for('view_admin_schedules'))
+
+    # Fetch data for GET request
+    cursor = mysql.connection.cursor()
+    cursor.execute("""
+        SELECT route_id, route_name, bus_number, driver_name
+        FROM bus_routes
+    """)
+    bus_routes = cursor.fetchall()
+
+    cursor.execute("""
+        SELECT rs.route_id, rs.stop_id, rs.stop_name, tt.trip_id, tt.trip_time, rs.stop_type, tt.shift
+        FROM route_stops rs
+        LEFT JOIN trip_times tt ON rs.stop_id = tt.stop_id
+        ORDER BY rs.route_id, rs.stop_type, rs.stop_name, tt.shift
+    """)
+    stops_and_times = cursor.fetchall()
+    cursor.close()
+
+    # Organize data
+    schedules = {}
+    for route in bus_routes:
+        route_id = route[0]
+        if route_id not in schedules:
+            schedules[route_id] = {
+                "route_name": route[1],
+                "bus_number": route[2],
+                "driver_name": route[3],
+                "pickup": {"shift1": [], "shift2": []},
+                "dropoff": {"shift1": [], "shift2": []}
+            }
+
+    for stop in stops_and_times:
+        route_id, stop_id, stop_name, trip_id, trip_time, stop_type, shift = stop
+        stop_info = {
+            "stop_id": stop_id,
+            "stop_name": stop_name,
+            "trip_id": trip_id,
+            "time": trip_time if trip_time else "N/A"
+        }
+        if stop_type == "pickup":
+            schedules[route_id]["pickup"][f"shift{shift or '1'}"].append(stop_info)
+        elif stop_type == "dropoff":
+            schedules[route_id]["dropoff"][f"shift{shift or '1'}"].append(stop_info)
+
+    return render_template('view_admin_schedules.html', schedules=schedules)
+
+@app.route('/view_schedules')
+def view_schedules():
+    cursor = mysql.connection.cursor()
+
+    # Fetch all bus routes
+    cursor.execute("""
+        SELECT route_id, route_name, bus_number, driver_name
+        FROM bus_routes
+    """)
+    bus_routes = cursor.fetchall()
+
+    # Fetch stops and times for each route, organized by shift and type
+    cursor.execute("""
+        SELECT rs.route_id, rs.stop_name, tt.trip_time, rs.stop_type, tt.shift
+        FROM route_stops rs
+        LEFT JOIN trip_times tt ON rs.stop_id = tt.stop_id
+        ORDER BY rs.route_id, rs.stop_type, tt.shift, tt.trip_time
+    """)
+    stops_and_times = cursor.fetchall()
+    cursor.close()
+
+    # Organize data
+    schedules = {}
+    for route in bus_routes:
+        route_id = route[0]
+        if route_id not in schedules:
+            schedules[route_id] = {
+                "route_name": route[1],
+                "bus_number": route[2],
+                "driver_name": route[3],
+                "pickup": {"shift1": [], "shift2": []},
+                "dropoff": {"shift1": [], "shift2": []}
+            }
+
+    for stop in stops_and_times:
+        route_id = stop[0]
+        if route_id in schedules:
+            stop_info = {
+                "stop_name": stop[1],
+                "time": stop[2] if stop[2] else "N/A"
+            }
+            if stop[3] == "pickup":
+                schedules[route_id]["pickup"][f"shift{stop[4]}"].append(stop_info)
+            elif stop[3] == "dropoff":
+                schedules[route_id]["dropoff"][f"shift{stop[4]}"].append(stop_info)
+
+    return render_template('view_schedules.html', schedules=schedules)
     
 @app.route('/view_users', methods=['GET', 'POST'])
 def view_users():
