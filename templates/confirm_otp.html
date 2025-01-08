@@ -1,0 +1,45 @@
+{% extends 'app.html' %}
+
+{% block content %}
+<div class="container mt-5">
+    {% if message %}
+    <div class="alert alert-info" role="alert">
+        {{ message }}
+    </div>
+    {% endif %}
+    {% if redirect_to_payment %}
+    <!-- Timer for Redirection -->
+    <h2 class="text-center mb-4">OTP Confirmed!</h2>
+    <p class="text-center">You will be redirected to the payment page in <span id="timer">5</span> seconds...</p>
+    <script>
+        function startTimer() {
+            let countdown = 5; // Timer in seconds
+            const timerDisplay = document.getElementById('timer');
+
+            const interval = setInterval(() => {
+                if (countdown <= 0) {
+                    clearInterval(interval);
+                    window.location.href = "{{ url_for('payment') }}";
+                } else {
+                    timerDisplay.textContent = countdown;
+                    countdown--;
+                }
+            }, 1000);
+        }
+
+        // Start the timer when the page loads
+        startTimer();
+    </script>
+    {% else %}
+    <!-- OTP Input Form -->
+    <h2 class="text-center mb-4">Confirm OTP</h2>
+    <form method="POST" action="{{ url_for('confirm_otp') }}">
+        <div class="form-group">
+            <label for="otp">Enter OTP:</label>
+            <input type="text" id="otp" name="otp" class="form-control" required>
+        </div>
+        <button type="submit" class="btn btn-success mt-3">Confirm Booking</button>
+    </form>
+    {% endif %}
+</div>
+{% endblock %}
