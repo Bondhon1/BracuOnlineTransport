@@ -1,0 +1,184 @@
+{% extends 'app.html' %}
+
+{% block content %}
+<div class="container mt-5">
+    <div class="alert alert-warning text-center mb-4">
+        <h5>Time Remaining: <span id="timer">01:00</span></h5>
+    </div>
+    {% with messages = get_flashed_messages(with_categories=true) %}
+    {% if messages %}
+        {% for category, message in messages %}
+        <div class="alert alert-{{ category }} alert-dismissible fade show" role="alert">
+            {{ message }}
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+        </div>
+        {% endfor %}
+    {% endif %}
+    {% endwith %}
+    <h2 class="text-center mb-4">Select Seat</h2>
+    <div class="row">
+        <!-- User and Journey Info -->
+        <div id="user-info" class="col-lg-3 mb-4">
+            <div class="card shadow-sm">
+                <div class="card-header bg-primary text-white">
+                    <h5 class="mb-0">User Info</h5>
+                </div>
+                <div class="card-body">
+                    <p><strong>Name:</strong> {{ user_info.name }}</p>
+                    <p><strong>Email:</strong> {{ user_info.email }}</p>
+                    <p><strong>Student ID:</strong> {{ user_info.student_id }}</p>
+                    <p><strong>Department:</strong> {{ user_info.department }}</p>
+                    <p><strong>Gender:</strong> {{ user_info.gender }}</p>
+                    
+                </div>
+            </div>
+        </div>
+        
+
+        <!-- Seat Selection -->
+        <div id="seat-grid-container" class="col-lg-6">
+            <div id="seat_grid" class="seat-grid"></div>
+        </div>
+
+        <!-- Color Indicator -->
+        <div id="color-indicator" class="col-lg-3">
+            <div class="color-indicator ms-lg-4 p-3 border rounded bg-light shadow">
+                <h5 class="text-center mb-3">Seat Legend</h5>
+                <div class="mb-2">
+                    <span class="badge bg-success me-2">&nbsp;</span> Available
+                </div>
+                <div class="mb-2">
+                    <span class="badge bg-danger me-2">&nbsp;</span> Booked
+                </div>
+                <div class="mb-2">
+                    <span class="badge bg-primary me-2">&nbsp;</span> Male Reserved
+                </div>
+                <div class="mb-2">
+                    <span class="badge" style="background-color: #e91e63;">&nbsp;</span> Female Reserved
+                </div>
+                <div class="mb-2">
+                    <span class="badge bg-secondary me-2">&nbsp;</span> Reserved for Another Route
+                </div>
+                <div class="mb-2">
+                    <span class="badge bg-warning me-2">&nbsp;</span> Selected
+                </div>
+            </div>
+        </div>
+    </div>
+
+
+    <form id="otpForm" method="POST" action="{{ url_for('send_otp') }}" class="mt-4 text-center">
+        <input type="hidden" name="route_id" value="{{ route_id }}">
+        <input type="hidden" name="journey_type" value="{{ journey_type }}">
+        <input type="hidden" name="stop_id" value="{{ stop_id }}">
+        <input type="hidden" name="shift" value="{{ shift }}">
+        <input type="hidden" id="seat_number" name="seat_number">
+        <div class="d-flex justify-content-center">
+            <button type="submit" class="btn btn-primary btn-lg mt-3" id="sendOtpBtn" disabled>Send OTP</button>
+        </div>
+    </form>
+</div>
+
+<script>
+    const seatNumbers = {{ seat_numbers | tojson | safe }};
+    const maleSeats = {{ male_seats | tojson | safe }};
+    const femaleSeats = {{ female_seats | tojson | safe }};
+    const reservedSeats = {{ reserved_seats | tojson | safe }};
+    const reservedOtherRoutes = {{ reserved_other_routes | tojson | safe }};
+    const userGender = "{{ user_gender }}";
+
+    const seatGrid = document.getElementById('seat_grid');
+    const seatNumberInput = document.getElementById('seat_number');
+    const sendOtpBtn = document.getElementById('sendOtpBtn');
+    seatGrid.innerHTML = '';
+
+    const rows = Math.ceil(seatNumbers.length / 4); // Assume 4 columns for the bus layout
+
+    for (let i = 0; i < rows; i++) {
+        const rowDiv = document.createElement('div');
+        rowDiv.className = 'seat-row';
+
+        for (let j = 0; j < 4; j++) {
+            const seatIndex = i * 4 + j;
+            if (seatIndex >= seatNumbers.length) break;
+
+            const seat = seatNumbers[seatIndex];
+            const seatDiv = document.createElement('div');
+            seatDiv.className = 'seat';
+            seatDiv.textContent = seat;
+
+            if (reservedOtherRoutes.includes(seat)) {
+                seatDiv.classList.add('reserved-other');
+            } else if (reservedSeats.includes(seat)) {
+                seatDiv.classList.add('reserved');
+            } else if (maleSeats.includes(seat) && userGender !== 'Male') {
+                seatDiv.classList.add('reserved-male');
+            } else if (femaleSeats.includes(seat) && userGender !== 'Female') {
+                seatDiv.classList.add('reserved-female');
+            } else {
+                seatDiv.classList.add('available');
+                seatDiv.addEventListener('click', () => {
+                    if (seatDiv.classList.contains('selected')) {
+                        seatDiv.classList.remove('selected');
+                        seatNumberInput.value = '';
+                        sendOtpBtn.disabled = true;
+                    } else {
+                        document.querySelectorAll('.seat.selected').forEach(s => s.classList.remove('selected'));
+                        seatDiv.classList.add('selected');
+                        seatNumberInput.value = seat;
+                        sendOtpBtn.disabled = false;
+                    }
+                });
+            }
+
+            rowDiv.appendChild(seatDiv);
+
+            // Add aisle spacing after the second column
+            if (j === 1) {
+                const aisleDiv = document.createElement('div');
+                aisleDiv.className = 'aisle';
+                rowDiv.appendChild(aisleDiv);
+            }
+        }
+
+        seatGrid.appendChild(rowDiv);
+    }
+    // Store timer start time in session storage
+    sessionStorage.setItem('timerStartTime', Date.now().toString());
+
+    // Timer functionality
+    let timeLeft = {{ timer_duration }};
+
+    function updateTimer() {
+        const startTime = sessionStorage.getItem('timerStartTime');
+        if (!startTime) {
+            window.location.href = "{{ url_for('dashboard') }}";
+            return;
+        }
+
+        const elapsedTime = Math.floor((Date.now() - parseInt(startTime)) / 1000);
+        timeLeft = Math.max(0, {{ timer_duration }} - elapsedTime);
+
+        if (timeLeft <= 0) {
+            clearInterval(timerInterval);
+            alert('Seat selection session expired. You will be redirected to the dashboard.');
+            window.location.href = "{{ url_for('dashboard') }}";
+            return;
+        }
+
+        const minutes = Math.floor(timeLeft / 60);
+        const seconds = timeLeft % 60;
+        document.getElementById('timer').textContent = 
+            `${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
+    }
+
+    const timerInterval = setInterval(updateTimer, 1000);
+
+    // Clear timer when form is submitted
+    document.querySelector('form')?.addEventListener('submit', function(e) {
+        // Don't clear the timer, let it continue on the payment page
+    });
+</script>
+
+
+{% endblock %}
