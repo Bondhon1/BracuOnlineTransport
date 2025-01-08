@@ -4,7 +4,7 @@
 <!-- Container for the login form, styled with Bootstrap -->
 <div class="container">
   <!-- Header for the login form -->
-  <h2>Login form</h2>
+  <h2>Admin Login Form</h2>
 
     <!-- Display flash messages, such as login errors -->
     {% with messages = get_flashed_messages() %}
@@ -21,8 +21,8 @@
     {% endif %}
     {% endwith %}
 
-  <!-- Login form, submits to the /login route using POST method -->
-  <form action="/login" method="POST">
+  <!-- Login form, submits to the /admin_login route using POST method -->
+  <form action="/admin_login" method="POST">
     <!-- Hidden tag to help protect against CSRF (Cross-Site Request Forgery) -->
     {{ form.hidden_tag() }}
 
@@ -62,8 +62,7 @@
 
     <!-- Submit button to log in, with Bootstrap styling -->
     {{ form.submit(class="btn btn-dark mt-4")}}
-    <!-- Link to the registration page -->
-    <a href="/register" class="btn btn-secondary mt-4">Register page</a>
+    
   </form>
 </div>
 
