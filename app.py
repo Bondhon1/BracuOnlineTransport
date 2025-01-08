@@ -1110,9 +1110,6 @@ def staff_update_profile():
     return render_template('staff_update_profile.html', form=form)
 
 
-
-from datetime import datetime
-
 @app.route('/select_route', methods=['GET', 'POST'])
 def select_route():
     if 'user_id' not in session:
@@ -1279,7 +1276,7 @@ def select_seat():
         reserved_other_routes=reserved_other_routes,
         user_info=user_info,
         user_gender=user_info['gender'],
-        timer_duration=60
+        timer_duration=300  # 5 minutes timer
     )
 
 
@@ -1387,7 +1384,7 @@ def confirm_otp():
         # Clear OTP data
         session.pop('otp', None)
 
-        flash("OTP confirmed successfully! Redirecting to the payment page...", "success")
+       
         return render_template('confirm_otp.html', redirect_to_payment=True)
 
     return render_template('confirm_otp.html', redirect_to_payment=False)
@@ -1399,11 +1396,20 @@ def payment():
         flash("Payment session expired. Please select your seat again.", "danger")
         return redirect(url_for('dashboard'))
 
+    booking_details = session.get('pending_booking')
+    cursor = mysql.connection.cursor()
+
+    # Fetch fare from route_stops table
+    cursor.execute("""
+        SELECT fare
+        FROM route_stops
+        WHERE stop_id = %s
+    """, (booking_details['stop_id'],))
+    fare = cursor.fetchone()
+    fare = fare[0] if fare else 50.00  # Default to 50 if fare not found
+
     if request.method == 'POST':
         payment_method = request.form.get('payment_method')
-        booking_details = session.get('pending_booking')
-        cursor = mysql.connection.cursor()
-
         try:
             # Final check for seat availability
             cursor.execute("""
@@ -1437,18 +1443,18 @@ def payment():
             
             booking_id = cursor.lastrowid
             
-            # Get user details for payment record
+            # Insert payment record
             cursor.execute("""
-                SELECT name, email, student_id, department 
-                FROM users 
-                WHERE id = %s
-            """, (session['user_id'],))
-            user_details = cursor.fetchone()
+                INSERT INTO payment_records 
+                (booking_id, user_id, payment_method, amount)
+                VALUES (%s, %s, %s, %s)
+            """, (booking_id, session['user_id'], payment_method, fare))
             
             mysql.connection.commit()
+            flash(f"Payment successful! Fare: {fare} TK", "success")
             return jsonify({
                 'status': 'success',
-                'message': 'Payment successful!',
+                'message': f'Payment successful! Fare: {fare} TK',
                 'redirect': url_for('dashboard')
             })
             
@@ -1458,7 +1464,10 @@ def payment():
         finally:
             cursor.close()
 
-    return render_template('payment.html')
+    # For GET requests, render the payment page with fare
+    cursor.close()
+    return render_template('payment.html', fare=fare)
+
 
 @app.route('/complete_payment', methods=['POST'])
 def complete_payment():
@@ -1473,6 +1482,13 @@ def complete_payment():
     cursor = mysql.connection.cursor()
 
     try:
+        cursor.execute("""
+            SELECT fare
+            FROM route_stops
+            WHERE stop_id = %s
+        """, (booking_details['stop_id'],))
+        fare = cursor.fetchone()
+        fare = fare[0] if fare else 50.00
         # Get trip_id
         cursor.execute("""
             SELECT trip_id FROM trip_times 
@@ -1521,7 +1537,7 @@ def complete_payment():
             user_details[3],
             payment_method,
             payment_number,  # Use the stored mobile number
-            50.00  # Fixed amount
+            fare  # Use the fare fetched from the route_stops table
         ))
         
         mysql.connection.commit()

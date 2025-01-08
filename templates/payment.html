@@ -4,7 +4,7 @@
 <div class="container mt-5">
     <!-- Timer Display -->
     <div class="alert alert-warning text-center mb-4">
-        <h5>Time Remaining: <span id="timer">01:00</span></h5>
+        <h5>Time Remaining: <span id="timer">05:00</span></h5>
         <small class="text-muted">Complete payment before time expires</small>
     </div>
 
@@ -15,6 +15,10 @@
                     <h3 class="text-center mb-0">Select Payment Method</h3>
                 </div>
                 <div class="card-body">
+                    <div class="text-center mb-4">
+                        <h5>Fare: <span class="text-success">{{ fare }} TK</span></h5>
+                    </div>
+                    
                     <form id="paymentForm" method="POST">
                         <div class="payment-options">
                             <div class="form-check payment-option mb-4 p-3 border rounded">
@@ -63,7 +67,7 @@
 <script>
 // Get the start time from session storage
 const startTime = sessionStorage.getItem('timerStartTime');
-const totalDuration = 60; // 1 minute in seconds
+const totalDuration = 300; // 5 minute in seconds
 
 function updateTimer() {
     if (!startTime) {
