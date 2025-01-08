@@ -51,11 +51,46 @@ def allowed_file(filename):
 def future_date(form, field):
     if field.data <= date.today():
         raise ValidationError("Journey date must be in the future.")
+class VehicleRequestForm(FlaskForm):
+    journey_date = DateField("Journey Date", format='%Y-%m-%d', validators=[DataRequired(), future_date])
+    pickup_time = TimeField("Pickup Time", format='%H:%M', validators=[DataRequired()])
+    pickup_location = StringField("Pickup Location", validators=[DataRequired(), Length(max=100)])
+    destination = StringField("Destination", validators=[DataRequired(), Length(max=100)])
+    capacity = IntegerField("Capacity", validators=[DataRequired(), NumberRange(min=1, message="Capacity must be at least 1")])
+    submit = SubmitField("Submit Request")
 
 @app.route('/')
 def index():
     return render_template('index.html')
 
+@app.route('/request_vehicle', methods=['GET', 'POST'])
+def request_vehicle():
+    if 'staff_id' not in session:
+        return redirect(url_for('staff_login'))
+
+    form = VehicleRequestForm()
+    staff_id = session['staff_id']
+
+    if form.validate_on_submit():
+        journey_date = form.journey_date.data
+        pickup_time = form.pickup_time.data
+        pickup_location = form.pickup_location.data
+        destination = form.destination.data
+        capacity = form.capacity.data
+
+        cursor = mysql.connection.cursor()
+        cursor.execute("""
+            INSERT INTO vehicle_requests (staff_id, journey_date, pickup_time, pickup_location, destination, capacity)
+            VALUES (%s, %s, %s, %s, %s, %s)
+        """, (staff_id, journey_date, pickup_time, pickup_location, destination, capacity))
+        mysql.connection.commit()
+        cursor.close()
+
+        # Store success message in the session
+        session['vehicle_request_message'] = "Vehicle request submitted successfully!"
+        return redirect(url_for('staff_dashboard'))
+
+    return render_template('request_vehicle.html', form=form)
 
 
 @app.route('/download_ticket/<int:booking_id>')
