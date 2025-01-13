@@ -22,6 +22,13 @@
 <!-- Bootstrap 5 JS Bundle -->
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
 
+<!-- Loading Screen -->
+<div id="loading-screen" class="loading-screen">
+  <div class="spinner-border text-primary" role="status">
+    <span class="visually-hidden">Loading...</span>
+  </div>
+</div>
+
 <!-- Navbar -->
 <nav class="navbar navbar-expand-lg navbar-light bg-light fixed-top shadow-sm">
   <div class="container-fluid">
@@ -38,41 +45,56 @@
       <ul class="navbar-nav ms-auto">
         {% if 'user_id' in session %}
         <li class="nav-item">
-          <a class="nav-link {% if request.endpoint == 'select_route' %}active{% endif %}" href="{{ url_for('select_route') }}">Book Seat</a>
+          <a class="nav-link btn btn-hover-transparent px-4 me-2 {% if request.endpoint == 'select_route' %}active{% endif %}", style="color: black" 
+             href="{{ url_for('select_route') }}">Book Seat</a>
         </li>
         {% elif 'staff_id' in session %}
         <li class="nav-item">
-          <a class="nav-link {% if request.endpoint == 'request_vehicle' %}active{% endif %}" href="{{ url_for('request_vehicle') }}">Request Vehicle</a>
+          <a class="nav-link btn btn-hover-transparent px-4 me-2 {% if request.endpoint == 'request_vehicle' %}active{% endif %}", style="color: black" 
+             href="{{ url_for('request_vehicle') }}">Request Vehicle</a>
         </li>
         {% endif %}
-
+    
         <!-- Dashboard Links Based on User Type -->
         {% if 'user_id' in session %}
         <li class="nav-item">
-          <a class="nav-link {% if request.endpoint == 'dashboard' %}active{% endif %}" href="{{ url_for('dashboard') }}">User Dashboard</a>
+          <a class="nav-link btn btn-hover-transparent px-4 me-2 {% if request.endpoint == 'dashboard' %}active{% endif %}", style="color: black" 
+             href="{{ url_for('dashboard') }}">User Dashboard</a>
         </li>
         {% elif 'staff_id' in session %}
         <li class="nav-item">
-          <a class="nav-link {% if request.endpoint == 'staff_dashboard' %}active{% endif %}" href="{{ url_for('staff_dashboard') }}">Staff Dashboard</a>
+          <a class="nav-link btn btn-hover-transparent px-4 me-2 {% if request.endpoint == 'staff_dashboard' %}active{% endif %}", style="color: black" 
+             href="{{ url_for('staff_dashboard') }}">Staff Dashboard</a>
         </li>
         {% elif 'admin_id' in session %}
         <li class="nav-item">
-          <a class="nav-link {% if request.endpoint == 'admin_dashboard' %}active{% endif %}" href="{{ url_for('admin_dashboard') }}">Admin Dashboard</a>
+          <a class="nav-link btn btn-hover-transparent px-4 me-2 {% if request.endpoint == 'admin_dashboard' %}active{% endif %}", style="color: black" 
+             href="{{ url_for('admin_dashboard') }}">Admin Dashboard</a>
         </li>
         {% endif %}
-
+    
         <!-- Authentication Links -->
         {% if 'user_id' in session or 'staff_id' in session or 'admin_id' in session %}
         <li class="nav-item">
-          <a class="nav-link" href="{{ url_for('logout') }}">Logout</a>
+          <a class="nav-link btn btn-hover-transparent text-danger px-4" href="{{ url_for('logout') }}">Logout</a>
         </li>
         {% else %}
-        <li class="nav-item"><a class="nav-link" href="/login">Login</a></li>
-        <li class="nav-item"><a class="nav-link" href="/register">Register</a></li>
-        <li class="nav-item"><a class="nav-link" href="/admin_login">Admin</a></li>
-        <li class="nav-item"><a class="nav-link" href="/staff_login">Faculty/Staff</a></li>
+        <li class="nav-item">
+          <a class="nav-link btn btn-hover-transparent px-4 me-2", style="color: black" href="/login">Login</a>
+        </li>
+        <li class="nav-item">
+          <a class="nav-link btn btn-hover-transparent px-4 me-2", style="color: black" href="/register">Register</a>
+        </li>
+        <li class="nav-item">
+          <a class="nav-link btn btn-hover-transparent px-4 me-2", style="color: black" href="/admin_login">Admin</a>
+        </li>
+        <li class="nav-item">
+          <a class="nav-link btn btn-hover-transparent  px-4", style="color: black" href="/staff_login">Faculty/Staff</a>
+        </li>
         {% endif %}
       </ul>
+    </div>
+
     </div>
   </div>
 </nav>
@@ -85,6 +107,51 @@
 <footer class="bg-light text-center py-3 shadow-sm">
   <p class="mb-0">&copy; 2024 University Transport System. All Rights Reserved.</p>
 </footer>
+
+<!-- Custom JS for Loading Screen -->
+<script>
+  // Show loading screen when page loads
+  window.addEventListener('load', () => {
+      const loadingScreen = document.getElementById('loading-screen');
+      setTimeout(() => {
+          loadingScreen.style.display = 'none';
+      }, 200); // Adjust timeout for loading screen visibility
+  });
+
+  // Handle form submissions to show the loading screen
+  document.querySelectorAll('form').forEach(form => {
+      form.addEventListener('submit', () => {
+          document.getElementById('loading-screen').style.display = 'flex';
+      });
+  });
+
+  // Prevent loading screen on browser back button
+  window.addEventListener('pageshow', event => {
+      if (event.persisted) {
+          document.getElementById('loading-screen').style.display = 'none';
+      }
+  });
+</script>
+
+<!-- Loading Screen Styles -->
+<style>
+  .loading-screen {
+      display: flex;
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background-color: rgba(255, 255, 255, 1);
+      justify-content: center;
+      align-items: center;
+      z-index: 1050;
+  }
+
+  .loading-screen.hidden {
+      display: none;
+  }
+</style>
 
 </body>
 </html>
