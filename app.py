@@ -1,4 +1,5 @@
 import datetime
+from dotenv import load_dotenv
 from flask import Flask, render_template, redirect, url_for, session, flash, request, send_from_directory
 from flask_wtf import FlaskForm
 from datetime import datetime, date
@@ -19,28 +20,31 @@ from fpdf import FPDF
 from apscheduler.schedulers.background import BackgroundScheduler
 from datetime import datetime, timedelta
 
+load_dotenv()
+
 app = Flask(__name__)
-app.config['UPLOAD_FOLDER'] = 'static/uploads' 
-app.config['ALLOWED_EXTENSIONS'] = {'png', 'jpg', 'jpeg', 'gif'}  
+app.config['UPLOAD_FOLDER'] = 'static/uploads'
+app.config['ALLOWED_EXTENSIONS'] = {'png', 'jpg', 'jpeg', 'gif'}
 
 
-app.config['MAIL_SERVER'] = 'smtp.gmail.com'
-app.config['MAIL_PORT'] = 587
-app.config['MAIL_USE_TLS'] = True
-app.config['MAIL_USE_SSL'] = False
-app.config['MAIL_USERNAME'] = 'samiulhaquebondhon0@gmail.com'
-app.config['MAIL_PASSWORD'] = 'tkqn ngtf sgng lpbm'
+app.config['MAIL_SERVER'] = os.environ.get('MAIL_SERVER', 'smtp.gmail.com')
+app.config['MAIL_PORT'] = int(os.environ.get('MAIL_PORT', 587))
+app.config['MAIL_USE_TLS'] = os.environ.get('MAIL_USE_TLS', 'true').lower() == 'true'
+app.config['MAIL_USE_SSL'] = os.environ.get('MAIL_USE_SSL', 'false').lower() == 'true'
+app.config['MAIL_USERNAME'] = os.environ.get('MAIL_USERNAME')
+app.config['MAIL_PASSWORD'] = os.environ.get('MAIL_PASSWORD')
 app.config['MAIL_DEFAULT_SENDER'] = ('University Transport System', app.config['MAIL_USERNAME'])
 
 mail = Mail(app)
 
 
 
-app.config['MYSQL_HOST'] = 'localhost' 
-app.config['MYSQL_USER'] = 'root'     
-app.config['MYSQL_PASSWORD'] = ''       
-app.config['MYSQL_DB'] = 'mydatabase'  
-app.secret_key = 'your_secret_key_here'
+app.config['MYSQL_HOST'] = os.environ.get('MYSQL_HOST', 'localhost')
+app.config['MYSQL_USER'] = os.environ.get('MYSQL_USER', 'root')
+app.config['MYSQL_PASSWORD'] = os.environ.get('MYSQL_PASSWORD', '')
+app.config['MYSQL_DB'] = os.environ.get('MYSQL_DB', 'mydatabase')
+app.config['MYSQL_PORT'] = int(os.environ.get('MYSQL_PORT', 3306))
+app.secret_key = os.environ.get('SECRET_KEY', 'your_secret_key_here')
 
 mysql = MySQL(app)
 
@@ -2150,6 +2154,8 @@ def logout():
     return redirect(url_for('index'))
 
 
-# Run the Flask application with debug mode enabled
+# Run the Flask application
 if __name__ == '__main__':
-    app.run(debug=True)
+    debug_mode = os.environ.get('FLASK_DEBUG', 'false').lower() == 'true'
+    port = int(os.environ.get('PORT', 5000))
+    app.run(host='0.0.0.0', port=port, debug=debug_mode)
