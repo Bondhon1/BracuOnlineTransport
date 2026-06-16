@@ -311,9 +311,9 @@ def verify_email():
         if entered_otp == session.get('otp'):
             cursor = mysql.connection.cursor()
             cursor.execute("""
-                INSERT INTO users (name, email, password, verified) 
-                VALUES (%s, %s, %s, %s)
-            """, (session['name'], session['email'], session['password'], True))
+                INSERT INTO users (name, full_name, email, password, verified)
+                VALUES (%s, %s, %s, %s, %s)
+            """, (session['name'], session['name'], session['email'], session['password'], True))
             mysql.connection.commit()
             cursor.close()
             
@@ -368,9 +368,9 @@ def verify_staff_email():
             # Store the staff in the database
             cursor = mysql.connection.cursor()
             cursor.execute("""
-                INSERT INTO staffs (initial, email, password, verified) 
-                VALUES (%s, %s, %s, %s)
-            """, (session['staff_initial'], session['staff_email'], session['staff_password'], True))
+                INSERT INTO staffs (initial, full_name, email, password, verified)
+                VALUES (%s, %s, %s, %s, %s)
+            """, (session['staff_initial'], session['staff_initial'], session['staff_email'], session['staff_password'], True))
             mysql.connection.commit()
             cursor.close()
 
