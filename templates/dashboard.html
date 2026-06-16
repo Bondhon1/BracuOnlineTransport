@@ -42,7 +42,7 @@
   <!-- Header for the dashboard page -->
   {% if user %}
   <div class="hero reveal mb-4 d-flex flex-column flex-md-row align-items-center text-center text-md-start gap-3" style="padding:2rem;">
-    <img src="{{ url_for('static', filename='uploads/' + user[11]) }}" alt="Profile photo of {{ user[1] }}" class="profile-avatar">
+    <img src="{{ url_for('static', filename='uploads/' + user[11]) if user[11] else url_for('static', filename='images/logo.png') }}" alt="Profile photo of {{ user[1] }}" class="profile-avatar">
     <div>
       <span class="eyebrow"><i class="fas fa-id-card"></i> My account</span>
       <h2 class="mb-1">Welcome back, {{ user[4] if user[4] else user[1] }}</h2>

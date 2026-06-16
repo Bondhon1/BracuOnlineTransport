@@ -22,7 +22,7 @@
   <h2 class="mb-4">Welcome to the Staff Dashboard</h2>
 
   <!-- Profile Image -->
-  <img src="{{ url_for('static', filename='uploads/' + staff[11]) }}" alt="Profile Image" class="img-thumbnail" width="150">
+  <img src="{{ url_for('static', filename='uploads/' + staff[11]) if staff[11] else url_for('static', filename='images/logo.png') }}" alt="Profile Image" class="img-thumbnail" width="150">
 
   <!-- Staff Information -->
   <div class="card shadow mb-4">
