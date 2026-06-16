@@ -4,37 +4,39 @@
     <title>University Transport System</title>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-  
+    <meta name="description" content="Book university bus tickets online — reliable, comfortable and punctual transport for students, faculty and staff.">
+
     <!-- Favicon -->
     <link rel="icon" href="{{ url_for('static', filename='images/logo.png') }}" type="image/png">
-  
-    <!-- Google Fonts -->
-    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;700&display=swap" rel="stylesheet">
-  
-    <!-- Bootstrap 5 -->
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet">
-  
+
+    <!-- Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Plus+Jakarta+Sans:wght@500;600;700;800&display=swap" rel="stylesheet">
+
+    <!-- Bootstrap 5.3 -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <!-- Font Awesome (icons used across pages) -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
+
     <!-- Custom Styles -->
     <link rel="stylesheet" href="{{ url_for('static', filename='css/styles.css') }}">
   </head>
-<body style="font-family: 'Roboto', sans-serif;">
-
-<!-- Bootstrap 5 JS Bundle -->
-<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
+<body>
 
 <!-- Loading Screen -->
-<div id="loading-screen" class="loading-screen">
-  <div class="spinner-border text-primary" role="status">
-    <span class="visually-hidden">Loading...</span>
+<div id="loading-screen" class="loading-screen hidden" aria-hidden="true">
+  <div class="spinner-border" role="status">
+    <span class="visually-hidden">Loading…</span>
   </div>
 </div>
 
 <!-- Navbar -->
-<nav class="navbar navbar-expand-lg navbar-light bg-light fixed-top shadow-sm">
-  <div class="container-fluid">
+<nav class="navbar navbar-expand-lg fixed-top">
+  <div class="container">
     <a class="navbar-brand" href="/">
-      <img src="{{ url_for('static', filename='images/logo.png') }}" alt="Logo" width="30" height="30" class="d-inline-block align-top">
-      University Transport System
+      <img src="{{ url_for('static', filename='images/logo.png') }}" alt="University Transport System logo">
+      <span>University Transport</span>
     </a>
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav" aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
@@ -42,116 +44,94 @@
     </button>
 
     <div class="collapse navbar-collapse" id="navbarNav">
-      <ul class="navbar-nav ms-auto">
+      <ul class="navbar-nav ms-auto align-items-lg-center">
         {% if 'user_id' in session %}
         <li class="nav-item">
-          <a class="nav-link btn btn-hover-transparent px-4 me-2 {% if request.endpoint == 'select_route' %}active{% endif %}", style="color: black" 
-             href="{{ url_for('select_route') }}">Book Seat</a>
+          <a class="nav-link {% if request.endpoint == 'select_route' %}active{% endif %}" href="{{ url_for('select_route') }}">
+            <i class="fas fa-ticket-alt me-1"></i> Book Seat</a>
+        </li>
+        <li class="nav-item">
+          <a class="nav-link {% if request.endpoint == 'dashboard' %}active{% endif %}" href="{{ url_for('dashboard') }}">
+            <i class="fas fa-gauge-high me-1"></i> Dashboard</a>
         </li>
         {% elif 'staff_id' in session %}
         <li class="nav-item">
-          <a class="nav-link btn btn-hover-transparent px-4 me-2 {% if request.endpoint == 'request_vehicle' %}active{% endif %}", style="color: black" 
-             href="{{ url_for('request_vehicle') }}">Request Vehicle</a>
+          <a class="nav-link {% if request.endpoint == 'request_vehicle' %}active{% endif %}" href="{{ url_for('request_vehicle') }}">
+            <i class="fas fa-van-shuttle me-1"></i> Request Vehicle</a>
         </li>
-        {% endif %}
-    
-        <!-- Dashboard Links Based on User Type -->
-        {% if 'user_id' in session %}
         <li class="nav-item">
-          <a class="nav-link btn btn-hover-transparent px-4 me-2 {% if request.endpoint == 'dashboard' %}active{% endif %}", style="color: black" 
-             href="{{ url_for('dashboard') }}">User Dashboard</a>
-        </li>
-        {% elif 'staff_id' in session %}
-        <li class="nav-item">
-          <a class="nav-link btn btn-hover-transparent px-4 me-2 {% if request.endpoint == 'staff_dashboard' %}active{% endif %}", style="color: black" 
-             href="{{ url_for('staff_dashboard') }}">Staff Dashboard</a>
+          <a class="nav-link {% if request.endpoint == 'staff_dashboard' %}active{% endif %}" href="{{ url_for('staff_dashboard') }}">
+            <i class="fas fa-gauge-high me-1"></i> Staff Dashboard</a>
         </li>
         {% elif 'admin_id' in session %}
         <li class="nav-item">
-          <a class="nav-link btn btn-hover-transparent px-4 me-2 {% if request.endpoint == 'admin_dashboard' %}active{% endif %}", style="color: black" 
-             href="{{ url_for('admin_dashboard') }}">Admin Dashboard</a>
+          <a class="nav-link {% if request.endpoint == 'admin_dashboard' %}active{% endif %}" href="{{ url_for('admin_dashboard') }}">
+            <i class="fas fa-user-shield me-1"></i> Admin Dashboard</a>
         </li>
         {% endif %}
-    
-        <!-- Authentication Links -->
+
         {% if 'user_id' in session or 'staff_id' in session or 'admin_id' in session %}
         <li class="nav-item">
-          <a class="nav-link btn btn-hover-transparent text-danger px-4" href="{{ url_for('logout') }}">Logout</a>
+          <a class="nav-link text-danger" href="{{ url_for('logout') }}"><i class="fas fa-right-from-bracket me-1"></i> Logout</a>
         </li>
         {% else %}
-        <li class="nav-item">
-          <a class="nav-link btn btn-hover-transparent px-4 me-2", style="color: black" href="/login">Login</a>
-        </li>
-        <li class="nav-item">
-          <a class="nav-link btn btn-hover-transparent px-4 me-2", style="color: black" href="/register">Register</a>
-        </li>
-        <li class="nav-item">
-          <a class="nav-link btn btn-hover-transparent px-4 me-2", style="color: black" href="/admin_login">Admin</a>
-        </li>
-        <li class="nav-item">
-          <a class="nav-link btn btn-hover-transparent  px-4", style="color: black" href="/staff_login">Faculty/Staff</a>
-        </li>
+        <li class="nav-item"><a class="nav-link" href="/login"><i class="fas fa-right-to-bracket me-1"></i> Login</a></li>
+        <li class="nav-item"><a class="nav-link" href="/register"><i class="fas fa-user-plus me-1"></i> Register</a></li>
+        <li class="nav-item"><a class="nav-link" href="/admin_login"><i class="fas fa-user-shield me-1"></i> Admin</a></li>
+        <li class="nav-item"><a class="nav-link" href="/staff_login"><i class="fas fa-chalkboard-user me-1"></i> Faculty/Staff</a></li>
         {% endif %}
       </ul>
-    </div>
-
     </div>
   </div>
 </nav>
 
-<main class="flex-grow-1" style="padding-top: 80px;">
-  {% block content %}
-  {% endblock %}
+<main style="padding-top: 92px;">
+  {% block content %}{% endblock %}
 </main>
 
-<footer class="bg-light text-center py-3 shadow-sm">
-  <p class="mb-0">&copy; 2024 University Transport System. All Rights Reserved.</p>
+<footer class="text-center py-4 mt-auto">
+  <div class="container">
+    <p class="mb-1"><i class="fas fa-bus-simple me-2"></i><strong>University Transport System</strong></p>
+    <p class="mb-0 small">&copy; <span id="year">2025</span> University Transport System. All rights reserved.</p>
+  </div>
 </footer>
 
-<!-- Custom JS for Loading Screen -->
+<!-- Bootstrap JS Bundle -->
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+
 <script>
-  // Show loading screen when page loads
-  window.addEventListener('load', () => {
-      const loadingScreen = document.getElementById('loading-screen');
-      setTimeout(() => {
-          loadingScreen.style.display = 'none';
-      }, 200); // Adjust timeout for loading screen visibility
-  });
+  document.getElementById('year').textContent = new Date().getFullYear();
 
-  // Handle form submissions to show the loading screen
-  document.querySelectorAll('form').forEach(form => {
-      form.addEventListener('submit', () => {
-          document.getElementById('loading-screen').style.display = 'flex';
+  // Scroll-reveal animations (respects reduced motion)
+  (function () {
+    var reduce = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+    var items = document.querySelectorAll('.reveal');
+    if (reduce || !('IntersectionObserver' in window)) {
+      items.forEach(function (el) { el.classList.add('in'); });
+      return;
+    }
+    var io = new IntersectionObserver(function (entries) {
+      entries.forEach(function (e) {
+        if (e.isIntersecting) { e.target.classList.add('in'); io.unobserve(e.target); }
       });
-  });
+    }, { threshold: 0.12 });
+    items.forEach(function (el) { io.observe(el); });
+  })();
 
-  // Prevent loading screen on browser back button
-  window.addEventListener('pageshow', event => {
-      if (event.persisted) {
-          document.getElementById('loading-screen').style.display = 'none';
-      }
-  });
+  // Loading overlay on form submit
+  (function () {
+    var screen = document.getElementById('loading-screen');
+    document.querySelectorAll('form').forEach(function (form) {
+      form.addEventListener('submit', function () {
+        if (form.checkValidity && !form.checkValidity()) return;
+        screen.classList.remove('hidden');
+      });
+    });
+    window.addEventListener('pageshow', function (e) {
+      if (e.persisted) screen.classList.add('hidden');
+    });
+  })();
 </script>
-
-<!-- Loading Screen Styles -->
-<style>
-  .loading-screen {
-      display: flex;
-      position: fixed;
-      top: 0;
-      left: 0;
-      width: 100%;
-      height: 100%;
-      background-color: rgba(255, 255, 255, 1);
-      justify-content: center;
-      align-items: center;
-      z-index: 1050;
-  }
-
-  .loading-screen.hidden {
-      display: none;
-  }
-</style>
 
 </body>
 </html>

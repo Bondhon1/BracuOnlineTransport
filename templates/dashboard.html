@@ -40,12 +40,18 @@
 
 
   <!-- Header for the dashboard page -->
-  <h2 class="mb-4">Welcome to the Dashboard</h2>
-  <img src="{{ url_for('static', filename='uploads/' + user[11]) }}" alt="Profile Image" class="img-thumbnail" width="150">
+  {% if user %}
+  <div class="hero reveal mb-4 d-flex flex-column flex-md-row align-items-center text-center text-md-start gap-3" style="padding:2rem;">
+    <img src="{{ url_for('static', filename='uploads/' + user[11]) }}" alt="Profile photo of {{ user[1] }}" class="profile-avatar">
+    <div>
+      <span class="eyebrow"><i class="fas fa-id-card"></i> My account</span>
+      <h2 class="mb-1">Welcome back, {{ user[4] if user[4] else user[1] }}</h2>
+      <p class="lead mb-0">{{ user[6] if user[6] else 'University Transport System member' }}</p>
+    </div>
+  </div>
 
   <!-- User Info Section -->
-  {% if user %}
-  <div class="card shadow mb-4">
+  <div class="card lift shadow mb-4 reveal d1">
     <div class="card-header bg-primary text-white">User Information</div>
     <div class="card-body">
       <table class="table table-bordered table-hover">
@@ -197,12 +203,12 @@
   </div>
 
   <!-- Actions Section -->
-  <div class="mt-4">
-    <a href="{{ url_for('update_profile') }}" class="btn btn-success mr-2">Update Profile</a>
-    <a href="{{ url_for('select_seat') }}" class="btn btn-primary mr-2">Book seat</a>
-    <a href="{{ url_for('view_schedules') }}" class="btn btn-success mr-2">View Bus Schedules</a>
-    <a href="{{ url_for('feedback') }}" class="btn btn-info mr-2">Add Feedback</a>
-    <a href="{{ url_for('logout') }}" class="btn btn-danger">Logout</a>
+  <div class="d-flex flex-wrap gap-2 mt-4 reveal">
+    <a href="{{ url_for('update_profile') }}" class="btn btn-success"><i class="fas fa-user-pen me-2"></i>Update Profile</a>
+    <a href="{{ url_for('select_seat') }}" class="btn btn-primary"><i class="fas fa-ticket-alt me-2"></i>Book Seat</a>
+    <a href="{{ url_for('view_schedules') }}" class="btn btn-secondary"><i class="fas fa-calendar-days me-2"></i>Bus Schedules</a>
+    <a href="{{ url_for('feedback') }}" class="btn btn-info"><i class="fas fa-comment-dots me-2"></i>Add Feedback</a>
+    <a href="{{ url_for('logout') }}" class="btn btn-danger"><i class="fas fa-right-from-bracket me-2"></i>Logout</a>
   </div>
   {% endif %}
 </div>

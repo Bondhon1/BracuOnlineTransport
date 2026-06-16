@@ -19,6 +19,9 @@ import random
 from fpdf import FPDF
 from apscheduler.schedulers.background import BackgroundScheduler
 from datetime import datetime, timedelta
+import json
+import urllib.request
+import urllib.error
 
 load_dotenv()
 
@@ -33,7 +36,18 @@ app.config['MAIL_USE_TLS'] = os.environ.get('MAIL_USE_TLS', 'true').lower() == '
 app.config['MAIL_USE_SSL'] = os.environ.get('MAIL_USE_SSL', 'false').lower() == 'true'
 app.config['MAIL_USERNAME'] = os.environ.get('MAIL_USERNAME')
 app.config['MAIL_PASSWORD'] = os.environ.get('MAIL_PASSWORD')
-app.config['MAIL_DEFAULT_SENDER'] = ('University Transport System', app.config['MAIL_USERNAME'])
+# Don't let SMTP hang the request on hosts that block outbound SMTP (e.g. Render free tier)
+app.config['MAIL_TIMEOUT'] = int(os.environ.get('MAIL_TIMEOUT', 15))
+
+# Sender identity (used by both SMTP and the HTTP API path)
+MAIL_SENDER = os.environ.get('MAIL_SENDER') or app.config['MAIL_USERNAME']
+MAIL_SENDER_NAME = os.environ.get('MAIL_SENDER_NAME', 'University Transport System')
+app.config['MAIL_DEFAULT_SENDER'] = (MAIL_SENDER_NAME, MAIL_SENDER)
+
+# Optional HTTP email API (Brevo / Sendinblue). Set BREVO_API_KEY to use it.
+# Many free hosts block outbound SMTP ports (25/465/587); the HTTP API works over
+# HTTPS (443) and is the recommended path for free deployments.
+BREVO_API_KEY = os.environ.get('BREVO_API_KEY')
 
 mail = Mail(app)
 
@@ -193,26 +207,70 @@ class VehicleRequestForm(FlaskForm):
 def generate_otp():
     return str(random.randint(100000, 999999))
 
+def _send_via_brevo(to, subject, body):
+    """Send a plain-text email through the Brevo (Sendinblue) HTTP API over HTTPS.
+
+    Works on hosts that block outbound SMTP ports (e.g. Render's free tier).
+    """
+    payload = {
+        "sender": {"name": MAIL_SENDER_NAME, "email": MAIL_SENDER},
+        "to": [{"email": to}],
+        "subject": subject,
+        "textContent": body,
+    }
+    req = urllib.request.Request(
+        "https://api.brevo.com/v3/smtp/email",
+        data=json.dumps(payload).encode("utf-8"),
+        headers={
+            "accept": "application/json",
+            "content-type": "application/json",
+            "api-key": BREVO_API_KEY,
+        },
+        method="POST",
+    )
+    with urllib.request.urlopen(req, timeout=20) as resp:
+        if resp.status not in (200, 201, 202):
+            raise Exception(f"Brevo API returned status {resp.status}")
+
+
+def _send_via_smtp(to, subject, body):
+    msg = Message(subject=subject, recipients=[to], body=body)
+    mail.send(msg)
+
+
+def deliver_email(to, subject, body):
+    """Deliver an email using the best available transport.
+
+    Prefers the Brevo HTTP API when BREVO_API_KEY is configured (recommended for
+    free hosting), otherwise falls back to SMTP via Flask-Mail. Raises on failure.
+    """
+    if BREVO_API_KEY:
+        try:
+            _send_via_brevo(to, subject, body)
+            return
+        except urllib.error.HTTPError as e:
+            detail = e.read().decode("utf-8", "ignore")
+            print(f"Brevo send failed ({e.code}): {detail}. Falling back to SMTP.")
+        except Exception as e:
+            print(f"Brevo send failed: {e}. Falling back to SMTP.")
+    _send_via_smtp(to, subject, body)
+
+
 def send_email(to, subject, body):
     try:
-        msg = Message(
-            subject=subject,
-            sender=app.config['MAIL_USERNAME'],
-            recipients=[to],
-            body=body
-        )
-        mail.send(msg)
+        deliver_email(to, subject, body)
     except Exception as e:
         raise Exception(f"Failed to send email: {str(e)}")
 
 
 def send_otp_email(email, otp):
     try:
-        msg = Message("Email Verification OTP", 
-                      sender=app.config['MAIL_USERNAME'], 
-                      recipients=[email])
-        msg.body = f"Your OTP for email verification is: {otp}"
-        mail.send(msg)
+        deliver_email(
+            email,
+            "Email Verification OTP",
+            f"Your OTP for email verification is: {otp}\n\n"
+            "This code is valid for a short time. If you did not request it, please ignore this email.",
+        )
         return True
     except Exception as e:
         print(f"Failed to send OTP: {e}")
@@ -731,9 +789,7 @@ def admin_dashboard():
 
 def send_email_notification(recipient, subject, message):
     try:
-        msg = Message(subject, recipients=[recipient])
-        msg.body = message
-        mail.send(msg)
+        deliver_email(recipient, subject, message)
         print(f"Email sent to {recipient}")
     except Exception as e:
         print(f"Failed to send email: {e}")
@@ -775,14 +831,12 @@ def view_admin_schedules():
 
             for user in affected_users:
                 try:
-                    msg = Message(
-                        subject="Bus Schedule Update",
-                        sender=app.config['MAIL_USERNAME'],
-                        recipients=[user[1]],  # User email
-                        body=f"Dear {user[2]},\n\nThe schedule for your booked trip has been updated. "
-                             f"Please check the updated times on your dashboard.\n\nBest Regards,\nUniversity Transport System"
+                    deliver_email(
+                        user[1],  # User email
+                        "Bus Schedule Update",
+                        f"Dear {user[2]},\n\nThe schedule for your booked trip has been updated. "
+                        f"Please check the updated times on your dashboard.\n\nBest Regards,\nUniversity Transport System",
                     )
-                    mail.send(msg)
                     print(f"Email sent to {user[1]}")
                 except Exception as e:
                     print(f"Error sending email to {user[1]}: {e}")
@@ -1337,13 +1391,11 @@ def send_otp():
         print("Generated OTP:", otp)
 
         try:
-            msg = Message(
-                subject="Your OTP for Seat Booking",
-                sender=app.config['MAIL_USERNAME'],
-                recipients=[user_email],
-                body=f"Your OTP is {otp}. Please use this to confirm your booking."
+            deliver_email(
+                user_email,
+                "Your OTP for Seat Booking",
+                f"Your OTP is {otp}. Please use this to confirm your booking.",
             )
-            mail.send(msg)
         except Exception as e:
             print("Error sending OTP:", e)
             flash("Failed to send OTP. Please try again later.", "danger")
@@ -1887,18 +1939,17 @@ def respond_request(request_id):
 
     # Send Email Notification
     try:
-        msg = Message(
+        deliver_email(
+            staff_email,
             "Vehicle Request Update",
-            recipients=[staff_email],
-            body=f"{message}\n\n"
-                 f"Details:\n"
-                 f"Journey Date: {journey_date}\n"
-                 f"From: {pickup_location}\n"
-                 f"To: {destination}\n"
-                 f"Admin's Reply: {reply}\n\n"
-                 f"Thank you for using our service!"
+            f"{message}\n\n"
+            f"Details:\n"
+            f"Journey Date: {journey_date}\n"
+            f"From: {pickup_location}\n"
+            f"To: {destination}\n"
+            f"Admin's Reply: {reply}\n\n"
+            f"Thank you for using our service!",
         )
-        mail.send(msg)
         flash("Request responded and email sent successfully!", "success")
     except Exception as e:
         flash(f"Failed to send email notification: {e}", "danger")

@@ -1,20 +1,30 @@
 {% extends 'app.html' %}
 {% block content %}
-<div class="container mt-5">
-    <h2>Email Verification</h2>
 
-    <!-- Display Message if Available -->
+<div class="auth-wrap">
+  <div class="auth-card reveal">
+    <div class="auth-icon"><i class="fas fa-envelope-circle-check"></i></div>
+    <h2 class="auth-title">Verify your email</h2>
+    <p class="auth-sub">Enter the 6-digit code we sent to your inbox.</p>
+
     {% if message %}
-    <div class="alert alert-info">{{ message }}</div>
+    <div class="alert alert-info" role="alert"><i class="fas fa-circle-info me-2"></i>{{ message }}</div>
     {% endif %}
 
-    <!-- OTP Verification Form -->
-    <form method="POST">
-        <div class="form-group">
-            <label for="otp">Enter OTP</label>
-            <input type="text" name="otp" class="form-control" required>
-        </div>
-        <button type="submit" class="btn btn-primary mt-3">Verify</button>
+    <form method="POST" novalidate>
+      <div class="form-group">
+        <label for="otp">One-time password (OTP)</label>
+        <input type="text" id="otp" name="otp" class="form-control text-center"
+               inputmode="numeric" pattern="[0-9]*" maxlength="6" autocomplete="one-time-code"
+               placeholder="000000" required
+               style="letter-spacing:.6rem; font-size:1.6rem; font-weight:700;">
+      </div>
+      <button type="submit" class="btn btn-primary"><i class="fas fa-check me-2"></i>Verify &amp; Continue</button>
     </form>
+
+    <p class="text-center text-muted small mt-3 mb-0">Didn't get it? Check spam or
+      <a href="/register">try registering again</a>.</p>
+  </div>
 </div>
+
 {% endblock %}

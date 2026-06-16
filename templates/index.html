@@ -1,60 +1,237 @@
 {% extends 'app.html' %}
 {% block content %}
 
-<div class="container mt-5">
-    <!-- Hero Section -->
-    <div class="jumbotron text-center bg-light p-5 rounded-3 shadow-sm">
-        <h1 class="display-4 mb-3">Welcome to the University Transport System</h1>
-        <p class="lead">Convenient and reliable transportation for all university members.</p>
-        <hr class="my-4">
-        <p>Book your bus tickets online with ease and get to your destination on time.</p>
-        <a class="btn btn-primary btn-lg mt-3" href="{{ url_for('select_seat') }}" role="button">Book a Ticket</a>
+<div class="container-xl mt-4">
+
+  <!-- Hero -->
+  <section class="hero reveal" style="padding:5.5rem 2rem;">
+    <span class="eyebrow"><i class="fas fa-bus-simple"></i> University Transport System</span>
+    <h1 class="fw-bold mb-3" style="font-size:clamp(2.4rem,6vw,4rem); line-height:1.05;">Ride smarter across campus &amp; city</h1>
+    <p class="lead mx-auto mb-0" style="max-width:760px; font-size:clamp(1.05rem,2.2vw,1.4rem);">
+      Reserve your bus seat online in seconds with a live seat map, secure OTP verification and instant
+      PDF e-tickets. Reliable routes, comfortable buses and punctual departures for every student,
+      faculty member and staff.</p>
+    <div class="d-flex flex-wrap gap-3 justify-content-center mt-4">
+      <a class="btn btn-light btn-lg fw-bold text-primary px-4" href="{{ url_for('select_seat') }}"><i class="fas fa-ticket-alt me-2"></i>Book a Ticket</a>
+      <a class="btn btn-outline-light btn-lg px-4" href="{{ url_for('register') }}" style="border:1.5px solid rgba(255,255,255,.6);color:#fff;"><i class="fas fa-user-plus me-2"></i>Create Account</a>
+    </div>
+    <p class="small mt-4 mb-0" style="color:rgba(255,255,255,.75);"><i class="fas fa-shield-halved me-1"></i> OTP-verified accounts &amp; secure bookings</p>
+  </section>
+
+  <!-- Stats band -->
+  <section class="row text-center g-3 mt-4">
+    <div class="col-6 col-lg-3 reveal d1">
+      <div class="feature py-4"><div class="stat-num">15+</div><div class="stat-label">Active routes</div></div>
+    </div>
+    <div class="col-6 col-lg-3 reveal d2">
+      <div class="feature py-4"><div class="stat-num">5k+</div><div class="stat-label">Daily riders</div></div>
+    </div>
+    <div class="col-6 col-lg-3 reveal d3">
+      <div class="feature py-4"><div class="stat-num">98%</div><div class="stat-label">On-time rate</div></div>
+    </div>
+    <div class="col-6 col-lg-3 reveal d4">
+      <div class="feature py-4"><div class="stat-num">24/7</div><div class="stat-label">Online booking</div></div>
+    </div>
+  </section>
+
+  <!-- Everything you can do -->
+  <section class="mt-5 pt-4">
+    <div class="text-center reveal mb-5">
+      <span class="eyebrow text-primary" style="background:rgba(3,105,161,.1);border-color:rgba(3,105,161,.2);color:#0369A1;"><i class="fas fa-layer-group"></i> Features</span>
+      <h2 class="fw-bold mt-2" style="font-size:clamp(1.8rem,4vw,2.6rem);">Everything you need to ride</h2>
+      <p class="text-secondary mx-auto" style="max-width:620px; font-size:1.1rem;">A complete booking platform built for students, faculty and staff — from picking a seat to downloading your ticket.</p>
     </div>
 
-    <!-- Image Gallery Section -->
-    <div class="row text-center mt-5">
-        <div class="col-md-4 mb-4">
-            <div class="image-container">
-                <img src="{{ url_for('static', filename='images/bus1.jpg') }}" alt="Demo Image 1" class="img-fluid rounded shadow-sm">
-            </div>
+    <div class="row g-4">
+      <div class="col-md-6 col-lg-4 reveal d1">
+        <div class="feature h-100 p-4">
+          <div class="feature-icon" style="width:60px;height:60px;font-size:1.5rem;"><i class="fas fa-chair"></i></div>
+          <h3 class="h5 fw-bold">Live seat map</h3>
+          <p class="text-secondary mb-0">Pick your exact seat from an interactive layout with real-time availability and gender-aware reserved seating.</p>
         </div>
-        <div class="col-md-4 mb-4">
-            <div class="image-container">
-                <img src="{{ url_for('static', filename='images/bus2.jpg') }}" alt="Demo Image 2" class="img-fluid rounded shadow-sm">
-            </div>
+      </div>
+      <div class="col-md-6 col-lg-4 reveal d2">
+        <div class="feature h-100 p-4">
+          <div class="feature-icon" style="width:60px;height:60px;font-size:1.5rem;"><i class="fas fa-shield-halved"></i></div>
+          <h3 class="h5 fw-bold">OTP-secured</h3>
+          <p class="text-secondary mb-0">Email-verified accounts and one-time passwords on every booking keep your reservations safe.</p>
         </div>
-        <div class="col-md-4 mb-4">
-            <div class="image-container">
-                <img src="{{ url_for('static', filename='images/bus3.jpg') }}" alt="Demo Image 3" class="img-fluid rounded shadow-sm">
-            </div>
+      </div>
+      <div class="col-md-6 col-lg-4 reveal d3">
+        <div class="feature h-100 p-4">
+          <div class="feature-icon" style="width:60px;height:60px;font-size:1.5rem;"><i class="fas fa-file-pdf"></i></div>
+          <h3 class="h5 fw-bold">Instant PDF e-tickets</h3>
+          <p class="text-secondary mb-0">Download a QR-coded PDF ticket the moment your booking is confirmed — no printing queues.</p>
         </div>
+      </div>
+      <div class="col-md-6 col-lg-4 reveal d1">
+        <div class="feature h-100 p-4">
+          <div class="feature-icon" style="width:60px;height:60px;font-size:1.5rem;"><i class="fas fa-rotate-left"></i></div>
+          <h3 class="h5 fw-bold">Easy cancellation &amp; refunds</h3>
+          <p class="text-secondary mb-0">Changed plans? Cancel a trip and get a guided, OTP-verified mobile refund in a few taps.</p>
+        </div>
+      </div>
+      <div class="col-md-6 col-lg-4 reveal d2">
+        <div class="feature h-100 p-4">
+          <div class="feature-icon" style="width:60px;height:60px;font-size:1.5rem;"><i class="fas fa-calendar-days"></i></div>
+          <h3 class="h5 fw-bold">Schedules &amp; history</h3>
+          <p class="text-secondary mb-0">Browse live bus schedules, track your travel history and get notified when timings change.</p>
+        </div>
+      </div>
+      <div class="col-md-6 col-lg-4 reveal d3">
+        <div class="feature h-100 p-4">
+          <div class="feature-icon" style="width:60px;height:60px;font-size:1.5rem;"><i class="fas fa-comment-dots"></i></div>
+          <h3 class="h5 fw-bold">Feedback &amp; replies</h3>
+          <p class="text-secondary mb-0">Rate your journey and chat with admins — your feedback shapes a better commute.</p>
+        </div>
+      </div>
     </div>
+  </section>
 
-    <!-- Information Section -->
-    <div class="row mt-5">
-        <div class="col-lg-6 mb-4">
-            <h3 class="fw-bold">Why Choose Us?</h3>
-            <p class="text-justify">Our university transport system is designed to provide reliable, comfortable, and timely bus services for all students, faculty, and staff. We operate on designated routes covering major areas in and around the city, ensuring everyone can commute with ease.</p>
-        </div>
-        <div class="col-lg-6 mb-4">
-            <h3 class="fw-bold">Service Highlights</h3>
-            <ul class="list-group list-group-flush">
-                <li class="list-group-item"><i class="fas fa-check-circle text-success me-2"></i> Well-maintained buses</li>
-                <li class="list-group-item"><i class="fas fa-check-circle text-success me-2"></i> Professional drivers</li>
-                <li class="list-group-item"><i class="fas fa-check-circle text-success me-2"></i> Punctual departures</li>
-                <li class="list-group-item"><i class="fas fa-check-circle text-success me-2"></i> Multiple routes</li>
-                <li class="list-group-item"><i class="fas fa-check-circle text-success me-2"></i> Affordable pricing</li>
-            </ul>
-        </div>
+  <!-- How it works -->
+  <section class="mt-5 pt-4">
+    <div class="text-center reveal mb-5">
+      <span class="eyebrow text-primary" style="background:rgba(3,105,161,.1);border-color:rgba(3,105,161,.2);color:#0369A1;"><i class="fas fa-route"></i> How it works</span>
+      <h2 class="fw-bold mt-2" style="font-size:clamp(1.8rem,4vw,2.6rem);">Book in three simple steps</h2>
     </div>
+    <div class="row g-4">
+      <div class="col-md-4 reveal d1">
+        <div class="feature h-100 p-4 text-center">
+          <div class="stat-num" style="color:#0369A1;">01</div>
+          <h3 class="h5 fw-bold mt-2">Choose route &amp; stop</h3>
+          <p class="text-secondary mb-0">Select your route, boarding stop, shift and journey type for the day you travel.</p>
+        </div>
+      </div>
+      <div class="col-md-4 reveal d2">
+        <div class="feature h-100 p-4 text-center">
+          <div class="stat-num" style="color:#0369A1;">02</div>
+          <h3 class="h5 fw-bold mt-2">Pick your seat</h3>
+          <p class="text-secondary mb-0">Tap an available seat on the live map and confirm your booking with a quick OTP.</p>
+        </div>
+      </div>
+      <div class="col-md-4 reveal d3">
+        <div class="feature h-100 p-4 text-center">
+          <div class="stat-num" style="color:#0369A1;">03</div>
+          <h3 class="h5 fw-bold mt-2">Ride &amp; show ticket</h3>
+          <p class="text-secondary mb-0">Download your PDF e-ticket, hop on the bus and scan the QR code on board.</p>
+        </div>
+      </div>
+    </div>
+  </section>
 
-    <!-- Call to Action Section -->
-    <div class="text-center py-5 bg-light rounded mt-5 shadow-sm">
-        <h3 class="fw-bold">Ready to book your next ride?</h3>
-        <p class="mb-4">Log in to access our booking system and reserve your seat today.</p>
-        <a href="{{ url_for('login') }}" class="btn btn-outline-primary btn-lg me-2">Log In</a>
-        <a href="{{ url_for('register') }}" class="btn btn-primary btn-lg">Register</a>
+  <!-- Gallery + why us -->
+  <section class="row g-4 align-items-center mt-5 pt-4">
+    <div class="col-lg-6 reveal d1">
+      <div class="row g-3">
+        <div class="col-6"><div class="image-container ratio ratio-1x1"><img src="{{ url_for('static', filename='images/bus1.jpg') }}" alt="University bus on route"></div></div>
+        <div class="col-6"><div class="image-container ratio ratio-1x1"><img src="{{ url_for('static', filename='images/bus2.jpg') }}" alt="Comfortable bus interior"></div></div>
+        <div class="col-12"><div class="image-container ratio ratio-21x9"><img src="{{ url_for('static', filename='images/bus3.jpg') }}" alt="Bus arriving at a campus stop"></div></div>
+      </div>
     </div>
+    <div class="col-lg-6 reveal d2">
+      <h2 class="fw-bold" style="font-size:clamp(1.8rem,4vw,2.4rem);">Why choose us?</h2>
+      <p class="text-secondary" style="font-size:1.08rem;">Our transport network is built for reliability and comfort, covering major areas in and around the city so you can commute with confidence every single day.</p>
+      <ul class="list-group list-group-flush fs-5">
+        <li class="list-group-item"><i class="fas fa-circle-check text-success me-2"></i>Well-maintained, comfortable buses</li>
+        <li class="list-group-item"><i class="fas fa-circle-check text-success me-2"></i>Professional, vetted drivers</li>
+        <li class="list-group-item"><i class="fas fa-circle-check text-success me-2"></i>Punctual departures &amp; multiple shifts</li>
+        <li class="list-group-item"><i class="fas fa-circle-check text-success me-2"></i>Multiple routes &amp; convenient stops</li>
+        <li class="list-group-item"><i class="fas fa-circle-check text-success me-2"></i>Affordable, transparent pricing</li>
+      </ul>
+    </div>
+  </section>
+
+  <!-- Built for everyone -->
+  <section class="mt-5 pt-4">
+    <div class="text-center reveal mb-5">
+      <span class="eyebrow text-primary" style="background:rgba(3,105,161,.1);border-color:rgba(3,105,161,.2);color:#0369A1;"><i class="fas fa-users"></i> For the whole campus</span>
+      <h2 class="fw-bold mt-2" style="font-size:clamp(1.8rem,4vw,2.6rem);">Built for everyone</h2>
+    </div>
+    <div class="row g-4">
+      <div class="col-md-4 reveal d1">
+        <div class="feature lift h-100 p-4 text-center">
+          <div class="auth-icon"><i class="fas fa-user-graduate"></i></div>
+          <h3 class="h5 fw-bold">Students</h3>
+          <p class="text-secondary mb-3">Book seats, manage trips, download tickets and share feedback.</p>
+          <a href="{{ url_for('register') }}" class="btn btn-outline-primary">Get started</a>
+        </div>
+      </div>
+      <div class="col-md-4 reveal d2">
+        <div class="feature lift h-100 p-4 text-center">
+          <div class="auth-icon"><i class="fas fa-chalkboard-user"></i></div>
+          <h3 class="h5 fw-bold">Faculty &amp; Staff</h3>
+          <p class="text-secondary mb-3">Request dedicated vehicles for official trips and track their status.</p>
+          <a href="{{ url_for('staff_login') }}" class="btn btn-outline-primary">Staff portal</a>
+        </div>
+      </div>
+      <div class="col-md-4 reveal d3">
+        <div class="feature lift h-100 p-4 text-center">
+          <div class="auth-icon"><i class="fas fa-user-shield"></i></div>
+          <h3 class="h5 fw-bold">Administrators</h3>
+          <p class="text-secondary mb-3">Manage routes, schedules, feedback and approve vehicle requests.</p>
+          <a href="{{ url_for('adminlogin') }}" class="btn btn-outline-primary">Admin login</a>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Payments -->
+  <section class="mt-5 pt-4 reveal">
+    <div class="bg-light rounded-xl shadow-soft p-4 p-md-5">
+      <div class="row align-items-center g-4">
+        <div class="col-md-7">
+          <h2 class="fw-bold mb-2" style="font-size:clamp(1.5rem,3.5vw,2.2rem);">Pay your way</h2>
+          <p class="text-secondary mb-0 fs-5">Fast, secure checkout with the payment methods you already use — mobile wallets and cards supported.</p>
+        </div>
+        <div class="col-md-5">
+          <div class="d-flex flex-wrap gap-3 justify-content-md-end align-items-center">
+            <img src="{{ url_for('static', filename='images/bkash.png') }}" alt="bKash" height="44" class="bg-white rounded-3 p-2 shadow-sm">
+            <img src="{{ url_for('static', filename='images/nagad.png') }}" alt="Nagad" height="44" class="bg-white rounded-3 p-2 shadow-sm">
+            <img src="{{ url_for('static', filename='images/card.png') }}" alt="Card payment" height="44" class="bg-white rounded-3 p-2 shadow-sm">
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- FAQ -->
+  <section class="mt-5 pt-4">
+    <div class="text-center reveal mb-4">
+      <span class="eyebrow text-primary" style="background:rgba(3,105,161,.1);border-color:rgba(3,105,161,.2);color:#0369A1;"><i class="fas fa-circle-question"></i> FAQ</span>
+      <h2 class="fw-bold mt-2" style="font-size:clamp(1.8rem,4vw,2.6rem);">Frequently asked questions</h2>
+    </div>
+    <div class="reveal mx-auto" style="max-width:820px;">
+      <div class="accordion" id="faq">
+        <div class="accordion-item mb-3 border rounded-xl overflow-hidden">
+          <h2 class="accordion-header"><button class="accordion-button collapsed fw-semibold" type="button" data-bs-toggle="collapse" data-bs-target="#q1">How do I book a seat?</button></h2>
+          <div id="q1" class="accordion-collapse collapse" data-bs-parent="#faq"><div class="accordion-body text-secondary">Create an account, verify it via the OTP we email you, then choose your route, stop and seat. Confirm with a booking OTP and download your PDF ticket.</div></div>
+        </div>
+        <div class="accordion-item mb-3 border rounded-xl overflow-hidden">
+          <h2 class="accordion-header"><button class="accordion-button collapsed fw-semibold" type="button" data-bs-toggle="collapse" data-bs-target="#q2">Can I cancel and get a refund?</button></h2>
+          <div id="q2" class="accordion-collapse collapse" data-bs-parent="#faq"><div class="accordion-body text-secondary">Yes. From your dashboard, cancel any active ticket and follow the guided, OTP-verified mobile refund process.</div></div>
+        </div>
+        <div class="accordion-item mb-3 border rounded-xl overflow-hidden">
+          <h2 class="accordion-header"><button class="accordion-button collapsed fw-semibold" type="button" data-bs-toggle="collapse" data-bs-target="#q3">Where do I find my ticket?</button></h2>
+          <div id="q3" class="accordion-collapse collapse" data-bs-parent="#faq"><div class="accordion-body text-secondary">Every confirmed booking appears under “My Tickets” on your dashboard, where you can download the QR-coded PDF anytime.</div></div>
+        </div>
+        <div class="accordion-item border rounded-xl overflow-hidden">
+          <h2 class="accordion-header"><button class="accordion-button collapsed fw-semibold" type="button" data-bs-toggle="collapse" data-bs-target="#q4">I'm faculty/staff — how is it different for me?</button></h2>
+          <div id="q4" class="accordion-collapse collapse" data-bs-parent="#faq"><div class="accordion-body text-secondary">Use the Faculty/Staff portal to request dedicated vehicles for official trips and track approvals from your staff dashboard.</div></div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Final CTA -->
+  <section class="hero text-center mt-5 reveal" style="padding:4rem 2rem;">
+    <h2 class="fw-bold mb-3" style="font-size:clamp(1.8rem,4.5vw,2.8rem);">Ready to book your next ride?</h2>
+    <p class="lead mx-auto mb-4" style="max-width:560px;">Join thousands of riders and reserve your seat in under a minute.</p>
+    <div class="d-flex flex-wrap gap-3 justify-content-center">
+      <a href="{{ url_for('register') }}" class="btn btn-light btn-lg fw-bold text-primary px-4"><i class="fas fa-user-plus me-2"></i>Register Free</a>
+      <a href="{{ url_for('login') }}" class="btn btn-outline-light btn-lg px-4" style="border:1.5px solid rgba(255,255,255,.6);color:#fff;"><i class="fas fa-right-to-bracket me-2"></i>Log In</a>
+    </div>
+  </section>
+
 </div>
 
 {% endblock %}

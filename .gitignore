@@ -20,4 +20,6 @@ __pycache__/
 *.sublime-project
 *.sublime-workspace
 *.txt
+!requirements.txt
+!runtime.txt
 
